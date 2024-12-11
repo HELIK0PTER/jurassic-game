@@ -18,6 +18,7 @@ states = {
     "GAMEPLAY": Gameplay(),
     "GAMEOVER": GameOver(),
     "SETTINGS": Settings(),
+    "PROMPT_NAME": PromptName(),
     }
 current_state = states["MAIN_MENU"]
 
