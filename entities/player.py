@@ -1,5 +1,5 @@
 import pygame
-from entities.projectile import Projectile
+from entities.projectile import Projectile, FireAnimation
 import math
 
 player_sprite_paths = {
@@ -18,6 +18,7 @@ class Player:
         self.rect = pygame.Rect(x, y, 50, 50)  # Rectangle représentant le joueur
         self.speed = 5  # Vitesse de déplacement
         self.projectiles = []  # Liste des projectiles tirés par le joueur
+        self.fires = []  # Liste des animations de feu
         self.shoot_cooldown = 0  # Temps de recharge pour le tir (en frames)
         self.is_dead = False  # Indique si le joueur est mort
 
@@ -87,26 +88,55 @@ class Player:
         if self.shoot_cooldown == 0:
             dx, dy = mouse_pos[0] - self.rect.centerx, mouse_pos[1] - self.rect.centery
             angle = math.atan2(dy, dx)
+
+            # Ajouter un projectile
             projectile = Projectile(self.rect.centerx, self.rect.centery, angle)
             self.projectiles.append(projectile)
+
+            # Ajouter une animation de feu
+            fire = FireAnimation(self.rect.centerx, self.rect.top)  # Ajuster la position si nécessaire
+            self.fires.append(fire)
+
+            # Activer le cooldown
             self.shoot_cooldown = 60 // 2
+
+    def update_fires(self):
+        """
+        Met à jour les animations de feu.
+        """
+        for fire in self.fires[:]:  # Itérer sur une copie pour supprimer en toute sécurité
+            fire.update()
+            if fire.animation_done:
+                self.fires.remove(fire)
 
     def update_projectiles(self):
         """
-        Met à jour la position des projectiles.
+        Met à jour les projectiles et les feux.
         """
         for projectile in self.projectiles[:]:
             projectile.move()
-            if projectile.rect.bottom < 0 or projectile.rect.top > 600 or projectile.rect.left > 800 or projectile.rect.right < 0:
+            if (projectile.rect.bottom < 0 or projectile.rect.top > 600 or
+                projectile.rect.left > 800 or projectile.rect.right < 0):
                 self.projectiles.remove(projectile)
 
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
 
+        # Mettre à jour les feux
+        self.update_fires()
+
     def draw(self, screen):
         """
-        Dessine le sprite actuel et les projectiles.
+        Dessine le sprite actuel, les projectiles et les animations de feu.
         """
+        # Dessiner le joueur
         screen.blit(self.current_sprite, (self.rect.x, self.rect.y))
+
+        # Dessiner les projectiles
         for projectile in self.projectiles:
             projectile.draw(screen)
+
+        # Dessiner les animations de feu
+        for fire in self.fires:
+            fire.draw(screen)
+
