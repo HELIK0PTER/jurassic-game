@@ -65,13 +65,20 @@ class MainMenu(State):
         self.buttons = [self.play_button, self.trophy_button, self.settings_button, self.exit_button]
 
     def play_welcome_and_background(self):
-        # Jouer le son de bienvenue uniquement la première fois
+        """Joue le son de bienvenue et la musique de fond."""
         welcome_sound.play()
         self.welcome_sound_start_time = pygame.time.get_ticks()  # Enregistrer l'heure de départ du son
 
         # Démarrer la musique de fond si elle n'est pas déjà en cours
         if not pygame.mixer.music.get_busy():
             pygame.mixer.music.play(-1)  # -1 signifie jouer en boucle
+
+    def restart_background_music(self):
+        """Redémarre la musique de fond en la relançant depuis le début."""
+        # Arrêter toute musique en cours
+        pygame.mixer.music.stop()
+        # Rejouer la musique en boucle
+        pygame.mixer.music.play(-1)
 
     def handle_events(self, events):
         for event in events:
@@ -104,6 +111,10 @@ class MainMenu(State):
                 # Démarrer la musique de fond si elle n'est pas déjà en cours
                 if not pygame.mixer.music.get_busy():
                     pygame.mixer.music.play(-1)  # -1 signifie jouer en boucle
+
+    def on_state_exit(self):
+        """Méthode appelée lors de la sortie de cet état (avant de passer à un autre état)."""
+        self.restart_background_music()  # Redémarrer la musique de fond avant de quitter l'état
 
 
 class Button:

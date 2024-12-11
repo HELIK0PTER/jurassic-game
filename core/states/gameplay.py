@@ -14,16 +14,17 @@ class Gameplay(State):
         self.score = 0
         self.font = pygame.font.Font(None, 36)
 
+        # Initialisation audio
+        pygame.mixer.init()
+
         # Charger la musique de fond
         pygame.mixer.music.load("assets/sounds/background_song.mp3")
         pygame.mixer.music.play(-1)  # Jouer en boucle
         self.background_music = pygame.mixer.music  # Référence à la musique de fond
 
-        # Initialisation audio
-        pygame.mixer.init()
-
         # Charger les sons
         self.shoot_sound = pygame.mixer.Sound("assets/sounds/pistolet.ogg")
+        self.shoot_sound.set_volume(0.7)  # Volume normal pour les sons de tir (entre 0 et 1)
 
     def handle_events(self, events):
         keys = pygame.key.get_pressed()
