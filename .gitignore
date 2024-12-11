@@ -1,4 +1,7 @@
 .idea
 .venv
-__pycache__
-core/states/__pycache__
+
+# Ignorer les fichiers de cache Python
+__pycache__/
+*.pyc
+*.pyo
