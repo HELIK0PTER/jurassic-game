@@ -4,11 +4,17 @@
 
 ## Description du jeu
 
-Dans ce jeu Pygame, vous incarnez une petite voiture qui doit survivre à des vagues de dinosaures tout en accomplissant des objectifs de niveaux. Le joueur contrôle la voiture en utilisant les touches ZQSD et peut se déplacer dans toutes les directions. 
+Dans ce jeu Pygame, vous incarnez une petite voiture qui doit survivre à des vagues 
+de dinosaures tout en accomplissant des objectifs de niveaux. Le joueur contrôle la 
+voiture en utilisant les touches ZQSD et peut se déplacer dans toutes les directions. 
 
-L'objectif est de progresser à travers les niveaux en survivant et en éliminant les dinosaures. À chaque niveau, les défis deviennent de plus en plus difficiles, avec un nombre croissant de dinosaures à tuer et des intervalles de spawn variables.
+L'objectif est de progresser à travers les niveaux en survivant et en éliminant les 
+dinosaures. À chaque niveau, les défis deviennent de plus en plus difficiles, avec 
+un nombre croissant de dinosaures à tuer et des intervalles de spawn variables.
 
-Un système de caméra avancé permet de suivre les mouvements du joueur, tout en laissant ce dernier se déplacer librement au centre de l'écran jusqu'à une certaine limite.
+Un système de caméra avancé permet de suivre les mouvements du joueur, tout en 
+laissant ce dernier se déplacer librement au centre de l'écran jusqu'à une certaine 
+limite.
 
 ## Fonctionnalités principales
 - **Contrôle du joueur :** Déplacement fluide avec les touches ZQSD.
@@ -18,7 +24,6 @@ Un système de caméra avancé permet de suivre les mouvements du joueur, tout e
 - **Système de high score :** Les joueurs entrent leur nom avant de jouer, et leur score (nombre maximum de dinosaures tués) est enregistré.
 
 ## Arborescence du projet
-
 ```
 ├── main.py               # Point d'entrée principal
 ├── assets/               # Ressources (images, sons, etc.)
@@ -27,28 +32,40 @@ Un système de caméra avancé permet de suivre les mouvements du joueur, tout e
 │   └── fonts/            # Polices personnalisées
 ├── config.py             # Fichier de configuration (paramètres du jeu)
 ├── core/                 # Mécaniques et gestion générales
+│   ├── __init__.py       # Initialisation du module
 │   ├── camera.py         # Système de caméra
 │   ├── events.py         # Gestion des événements (clavier, souris)
-│   ├── state.py          # Gestion des états (menus, jeu, pause)
+│   ├── states/           # Sous-package pour les états (menus, gameplay, etc.)
+│   │   ├── __init__.py   # Initialisation du sous-module
+│   │   ├── state.py      # Classe de base pour les états
+│   │   ├── main_menu.py  # État pour le menu principal
+│   │   ├── gameplay.py   # État pour le gameplay
+│   │   ├── settings.py   # État pour les paramètres
+│   │   ├── scoreboard.py # État pour le tableau des scores
+│   │   └── gameover.py   # État pour l'écran de fin de partie
 ├── entities/             # Entités principales du jeu
+│   ├── __init__.py       # Initialisation du module
 │   ├── player.py         # Classe pour la voiture
 │   ├── dinosaur.py       # Classe pour les dinosaures
 │   └── projectile.py     # Classe pour les projectiles (si applicable)
 ├── levels/               # Gestion des niveaux
+│   ├── __init__.py       # Initialisation du module
 │   ├── level_manager.py  # Logique des niveaux
 │   └── level_data.py     # Données spécifiques des niveaux
 ├── utils/                # Fonctions utilitaires
+│   ├── __init__.py       # Initialisation du module
 │   ├── math_utils.py     # Outils mathématiques pour la caméra et collisions
 │   ├── spawn_utils.py    # Gestion des spawn des dinosaures
 │   └── render_utils.py   # Aide pour le rendu des éléments
 ├── scores/               # Gestion des scores
+│   ├── __init__.py       # Initialisation du module
 │   ├── high_scores.py    # Gestion et affichage des meilleurs scores
 │   └── scores_data.json  # Sauvegarde des scores
 ├── maps/                 # Données des cartes
+│   ├── __init__.py       # Initialisation du module
 │   └── map_data.json     # Fichier JSON contenant les données de la carte
 └── README.md             # Documentation du projet
 ```
-
 ## Détails techniques
 
 ### Caméra
@@ -67,7 +84,7 @@ Les objectifs de chaque niveau (par exemple, tuer 5 dinosaures au niveau 1, 10 a
 
 ### Carte
 La carte utilise une approche basée sur des tuiles, stockée dans un fichier JSON. Exemple :
-```json
+json
 {
   "tiles": [
     [0, 0, 1, 0],
@@ -77,7 +94,6 @@ La carte utilise une approche basée sur des tuiles, stockée dans un fichier JS
   ],
   "tile_size": 64
 }
-```
 Chaque numéro représente un type de tuile (par exemple, 0 pour une route, 1 pour un obstacle).
 
 ### Système de high score
@@ -98,3 +114,6 @@ Chaque numéro représente un type de tuile (par exemple, 0 pour une route, 1 po
 3. **Contrôles :**
    - ZQSD : Déplacement de la voiture.
    - Évitez les dinosaures et atteignez les objectifs pour passer au niveau suivant.
+
+## Contribuer
+Les contributions sont les bienvenues ! N'hésitez pas à soumettre des pull requests ou à ouvrir des issues pour signaler des bugs ou suggérer des fonctionnalités.
