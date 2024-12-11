@@ -5,11 +5,12 @@ from entities.player import Player
 from entities.dinosaur import Dinosaur
 
 class Gameplay(State):
-    def __init__(self):
+    def __init__(self, player_name = ""):
         super().__init__()
         self.player = Player(375, 275)
         self.enemies = []
         self.spawn_timer = 0
+        self.player_name = player_name
         self.score = 0
         self.font = pygame.font.Font(None, 36)
 

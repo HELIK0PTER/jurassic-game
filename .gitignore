@@ -1,7 +1,7 @@
 .idea
 .venv
 
-# Ignorer les fichiers de cache Python
+# Ignore Python cache files
 __pycache__/
 *.pyc
 *.pyo

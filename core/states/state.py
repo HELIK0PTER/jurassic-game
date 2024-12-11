@@ -4,6 +4,7 @@ from core.events import handle_quit
 class State:
     def __init__(self):
         self.next_state = None  # État suivant
+        self.player_name = None
 
     def handle_events(self, events):
         """
