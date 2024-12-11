@@ -4,7 +4,7 @@ from core.events import handle_quit
 from core.states.main_menu import MainMenu
 from core.states.gameplay import Gameplay
 from core.states.gameover import GameOver
-from core.states.settings import Settings
+#from core.states.settings import Settings
 
 # Initialisation
 pygame.init()
@@ -17,7 +17,7 @@ states = {
     "MAIN_MENU": MainMenu(),
     "GAMEPLAY": Gameplay(),
     "GAMEOVER": GameOver(),
-    "SETTINGS": Settings(),
+    #"SETTINGS": Settings(),
     }
 current_state = states["MAIN_MENU"]
 
