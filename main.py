@@ -5,6 +5,7 @@ from core.states.main_menu import MainMenu
 from core.states.gameplay import Gameplay
 from core.states.gameover import GameOver
 from core.states.settings import Settings
+from core.states.prompt_name import PromptName
 
 # Initialisation
 pygame.init()
@@ -34,7 +35,7 @@ while True:
             states["MAIN_MENU"] = MainMenu()  # Réinitialise l'écran principal
             current_state = states["MAIN_MENU"]
         elif current_state.next_state == "GAMEPLAY":
-            states["GAMEPLAY"] = Gameplay()
+            states["GAMEPLAY"] = Gameplay(states["PROMPT_NAME"].player_name)
             current_state = states["GAMEPLAY"]
         elif current_state.next_state == "GAMEOVER":
             states["GAMEOVER"] = GameOver(states["GAMEPLAY"].score)
@@ -44,6 +45,9 @@ while True:
         elif current_state.next_state == "SETTINGS":
             states["SETTINGS"] = Settings()
             current_state = states["SETTINGS"]
+        elif current_state.next_state == "PROMPT_NAME":
+            states["PROMPT_NAME"] = PromptName()
+            current_state = states["PROMPT_NAME"]
         else:
             current_state = states[current_state.next_state]
 

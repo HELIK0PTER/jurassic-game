@@ -18,14 +18,20 @@ class PromptName(State):
         super().__init__()
         self.font = pygame.font.Font(None, 74)
 
-
     def handle_events(self, events):
-
-
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    self.next_state = "GAMEPLAY"
 
     def render(self, screen):
+        # Afficher le fond
         screen.blit(background, (0, 0))
         screen.blit(jurassic_logo, (WIDTH // 2 - 125, 50))
+
+        # Afficher un input pour le nom du joueur
+        text = self.font.render("Enter your name", True, WHITE)
+        screen.blit(text, (WIDTH // 2 - 200, 300))
 
     def update(self):
         pass
