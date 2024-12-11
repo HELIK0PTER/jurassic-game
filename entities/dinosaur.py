@@ -3,7 +3,12 @@ import random
 
 class Dinosaur:
     def __init__(self):
-        self.image = pygame.image.load("assets/images/dino1.png")  # Image du dinosaure
+        # Chargement des frames d'animation (6 images)
+        self.animation_frames = [
+            pygame.image.load(f"assets/images/raptor-run{i}.png") for i in range(1, 7)
+        ]
+        self.current_frame = 0  # Frame actuelle de l'animation
+        self.image = self.animation_frames[int(self.current_frame)]
         self.rect = self.image.get_rect()
         self.random_spawn()  # Position aléatoire
         self.speed = 2  # Vitesse de déplacement
@@ -51,11 +56,20 @@ class Dinosaur:
             return True  # Indique que le dinosaure est mort
         return False
 
+    def animate(self):
+        """
+        Met à jour l'image du dinosaure pour créer une animation avec 6 frames.
+        """
+        self.current_frame += 0.2  # Change de frame progressivement (ajustez la vitesse si nécessaire)
+        if self.current_frame >= len(self.animation_frames):
+            self.current_frame = 0  # Boucle sur les frames
+        self.image = self.animation_frames[int(self.current_frame)]  # Change l'image
+
     def draw(self, screen):
         """
         Dessine le dinosaure et sa barre de santé.
         """
-        # Afficher l'image du dinosaure
+        self.animate()  # Met à jour l'animation avant de dessiner
         screen.blit(self.image, self.rect)
 
         # Dessiner la barre de santé
