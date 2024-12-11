@@ -1,14 +1,10 @@
 import pygame
-from core.states.state import State
-import sys
 
-# Initialisation de pygame
-pygame.init()
+from core.events import handle_quit
+from core.states.state import State
 
 # Dimensions de la fenêtre
 WIDTH, HEIGHT = 800, 600
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Jurassic Park Menu")
 
 # Couleurs
 WHITE = (255, 255, 255)
@@ -29,13 +25,14 @@ icon_settings = pygame.transform.scale(icon_settings, (80, 80))
 
 # Définition des boutons (avec les icônes)
 buttons = [
-    {"rect": pygame.Rect(300, 400, 80, 80), "icon": icon_play, "label": "Play"},
-    {"rect": pygame.Rect(400, 400, 80, 80), "icon": icon_trophy, "label": "Trophy"},
-    {"rect": pygame.Rect(500, 400, 80, 80), "icon": icon_settings, "label": "Menu"},
+    {"rect": pygame.Rect(300, 400, 80, 80), "icon": icon_play, "label": "GAMEPLAY"},
+    {"rect": pygame.Rect(400, 400, 80, 80), "icon": icon_trophy, "label": "TROPHY"},
+    {"rect": pygame.Rect(500, 400, 80, 80), "icon": icon_settings, "label": "SETTINGS"},
+    {"rect": pygame.Rect(600, 400, 80, 80), "icon": icon_settings, "label": "EXIT"},
 ]
 
 # Fonction pour dessiner les boutons
-def draw_buttons():
+def draw_buttons(screen):
     for button in buttons:
         screen.blit(button["icon"], button["rect"])
 
@@ -44,42 +41,23 @@ class MainMenu(State):
         super().__init__()
         self.font = pygame.font.Font(None, 74)
         self.title = self.font.render("Jurassic Car Attack", True, (255, 255, 255))
-        self.subtitle = pygame.font.Font(None, 36).render("Press SPACE to Start", True, (255, 255, 255))
+        self.subtitle = pygame.font.Font(None, 36).render("Select an Option", True, (255, 255, 255))
 
     def handle_events(self, events):
         for event in events:
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                # clear events and change state
-                events.clear()
-                self.next_state = "GAMEPLAY"
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Clic gauche
+                for button in buttons:
+                    if button["label"] == "EXIT":
+                        handle_quit()
+                    if button["rect"].collidepoint(event.pos):
+                        self.next_state = button["label"]
 
     def render(self, screen):
-        screen.fill((0, 0, 0))
+        screen.blit(background, (0, 0))
+        screen.blit(jurassic_logo, (WIDTH // 2 - 125, 50))
         screen.blit(self.title, (200, 200))
         screen.blit(self.subtitle, (250, 300))
+        draw_buttons(screen)
 
-# Boucle principale
-running = True
-main_menu = MainMenu()
-while running:
-    events = pygame.event.get()
-    for event in events:
-        if event.type == pygame.QUIT:
-            running = False
-
-    main_menu.handle_events(events)
-
-    # Affichage de l'arrière-plan
-    screen.blit(background, (0, 0))
-
-    # Affichage du logo
-    screen.blit(jurassic_logo, (WIDTH // 2 - 125, 50))
-
-    # Dessin des boutons
-    draw_buttons()
-
-    # Affichage du menu principal
-    main_menu.render(screen)
-
-    # Mise à jour de l'affichage
-    pygame.display.flip()
+    def update(self):
+        pass

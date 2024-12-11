@@ -13,7 +13,8 @@ clock = pygame.time.Clock()
 states = {
     "MAIN_MENU": MainMenu(),
     "GAMEPLAY": Gameplay(),
-    "GAMEOVER": GameOver()
+    "GAMEOVER": GameOver(),
+
 }
 current_state = states["MAIN_MENU"]
 
