@@ -33,5 +33,6 @@ class PromptName(State):
         text = self.font.render("Enter your name", True, WHITE)
         screen.blit(text, (WIDTH // 2 - 200, 300))
 
+
     def update(self):
         pass
