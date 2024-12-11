@@ -1,6 +1,5 @@
 import pygame
 
-from core.events import handle_quit
 from core.states.state import State
 
 # Dimensions de la fenêtre
