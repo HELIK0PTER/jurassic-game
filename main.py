@@ -37,6 +37,12 @@ while True:
         else:
             current_state = states[current_state.next_state]
 
+    # Gérer les événements de sortie
+    for event in events:
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit()
+
     current_state.render(screen)
     pygame.display.flip()
     clock.tick(60)
