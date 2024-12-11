@@ -4,21 +4,10 @@ from core.states.state import State
 from entities.player import Player
 from entities.dinosaur import Dinosaur
 
-sprite_paths = {
-    'up': 'assets/images/player_up.png',
-    'down': 'assets/images/player_down.png',
-    'left': 'assets/images/player_left.png',
-    'right': 'assets/images/player_right.png',
-    'upleft': 'assets/images/player_upleft.png',
-    'upright': 'assets/images/player_upright.png',
-    'downleft': 'assets/images/player_downleft.png',
-    'downright': 'assets/images/player_downright.png',
-}
-
 class Gameplay(State):
     def __init__(self, player_name = ""):
         super().__init__()
-        self.player = Player(375, 275, sprite_paths)
+        self.player = Player(375, 275)
         self.enemies = []
         self.spawn_timer = 0
         self.player_name = player_name

@@ -40,7 +40,9 @@ while True:
             current_state = states["GAMEOVER"]
         elif current_state.next_state == "EXIT":
             handle_quit()
-
+        elif current_state.next_state == "SETTINGS":
+            states["SETTINGS"] = Settings()
+            current_state = states["SETTINGS"]
         else:
             current_state = states[current_state.next_state]
 

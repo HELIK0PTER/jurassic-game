@@ -1,3 +1,6 @@
+import pygame
+from core.events import handle_quit
+
 class State:
     def __init__(self):
         self.next_state = None  # État suivant
