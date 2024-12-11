@@ -5,10 +5,9 @@ def handle_quit():
     """
     Gère les événements de sortie du jeu, comme la fermeture de la fenêtre.
     """
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:  # Si l'utilisateur ferme la fenêtre
-            pygame.quit()
-            sys.exit()
+    # Si l'utilisateur ferme la fenêtre
+    pygame.quit()
+    exit()
 
 def handle_mouse_click():
     """

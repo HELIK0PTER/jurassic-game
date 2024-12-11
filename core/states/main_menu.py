@@ -47,8 +47,6 @@ class MainMenu(State):
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Clic gauche
                 for button in buttons:
-                    if button["label"] == "EXIT":
-                        handle_quit()
                     if button["rect"].collidepoint(event.pos):
                         self.next_state = button["label"]
 

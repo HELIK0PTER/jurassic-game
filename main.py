@@ -1,4 +1,6 @@
 import pygame
+
+from core.events import handle_quit
 from core.states.main_menu import MainMenu
 from core.states.gameplay import Gameplay
 from core.states.gameover import GameOver
@@ -14,8 +16,8 @@ states = {
     "MAIN_MENU": MainMenu(),
     "GAMEPLAY": Gameplay(),
     "GAMEOVER": GameOver(),
-
-}
+    "EXIT": "EXIT",
+    }
 current_state = states["MAIN_MENU"]
 
 # Boucle principale
@@ -35,8 +37,17 @@ while True:
         elif current_state.next_state == "GAMEOVER":
             states["GAMEOVER"] = GameOver(states["GAMEPLAY"].score)
             current_state = states["GAMEOVER"]
+        elif current_state.next_state == "EXIT":
+            handle_quit()
+
         else:
             current_state = states[current_state.next_state]
+
+    # Gérer les événements de sortie
+    for event in events:
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit()
 
     current_state.render(screen)
     pygame.display.flip()
