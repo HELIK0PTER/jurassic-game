@@ -13,7 +13,7 @@ clock = pygame.time.Clock()
 states = {
     "MAIN_MENU": MainMenu(),
     "GAMEPLAY": Gameplay(),
-    "GAMEOVER": GameOver(0)
+    "GAMEOVER": GameOver()
 }
 current_state = states["MAIN_MENU"]
 
@@ -25,9 +25,17 @@ while True:
 
     # Vérifier si on doit changer d'état
     if current_state.next_state:
-        if current_state.next_state == "GAMEOVER":
+        if current_state.next_state == "MAIN_MENU":
+            states["MAIN_MENU"] = MainMenu()  # Réinitialise l'écran principal
+            current_state = states["MAIN_MENU"]
+        elif current_state.next_state == "GAMEPLAY":
+            states["GAMEPLAY"] = Gameplay()
+            current_state = states["GAMEPLAY"]
+        elif current_state.next_state == "GAMEOVER":
             states["GAMEOVER"] = GameOver(states["GAMEPLAY"].score)
-        current_state = states[current_state.next_state]
+            current_state = states["GAMEOVER"]
+        else:
+            current_state = states[current_state.next_state]
 
     current_state.render(screen)
     pygame.display.flip()

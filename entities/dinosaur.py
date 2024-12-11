@@ -1,12 +1,32 @@
 import pygame
+import random
 
 class Dinosaur:
-    def __init__(self, x, y):
+    def __init__(self):
         self.image = pygame.image.load("assets/images/dino1.png")  # Image du dinosaure
         self.rect = self.image.get_rect()
+        self.random_spawn()  # Position aléatoire
         self.speed = 2  # Vitesse de déplacement
         self.health = 100  # Santé actuelle
         self.max_health = 100  # Santé maximale
+
+    def random_spawn(self):
+        """
+        Positionne le dinosaure à une position aléatoire en dehors de l'écran.
+        """
+        side = random.choice(["left", "right", "top", "bottom"])
+        if side == "left":
+            self.rect.x = -self.rect.width - 10
+            self.rect.y = random.randint(0, 600)
+        elif side == "right":
+            self.rect.x = 800 + 10
+            self.rect.y = random.randint(0, 600)
+        elif side == "top":
+            self.rect.x = random.randint(0, 800)
+            self.rect.y = -self.rect.height - 10
+        elif side == "bottom":
+            self.rect.x = random.randint(0, 800)
+            self.rect.y = 600 + 10
 
     def move_towards_player(self, player_rect):
         """

@@ -11,6 +11,8 @@ class MainMenu(State):
     def handle_events(self, events):
         for event in events:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                # clear events and change state
+                events.clear()
                 self.next_state = "GAMEPLAY"
 
     def render(self, screen):

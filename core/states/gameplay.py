@@ -35,7 +35,7 @@ class Gameplay(State):
         # Spawner des ennemis
         self.spawn_timer += 1
         if self.spawn_timer > 120:
-            self.enemies.append(Dinosaur(random.randint(0, 750), random.choice([0, 550])))
+            self.enemies.append(Dinosaur())
             self.spawn_timer = 0
 
         # Mettre à jour les projectiles
@@ -51,10 +51,18 @@ class Gameplay(State):
                     if enemy.take_damage(25):
                         self.enemies.remove(enemy)
 
+            # si le joueur touche un ennemi, reset tout le jeu et passer à l'écran de game over
             if self.player.rect.colliderect(enemy.rect):
+                # clear les ennemis
+                self.enemies.clear()
+                # reset la position du joueur
+                self.player.rect.x = 375
+                self.player.rect.y = 275
                 self.next_state = "GAMEOVER"
 
-        self.score += 1
+        # Mettre à jour le score tous les 60 ticks
+        if pygame.time.get_ticks() % 60 == 0:
+            self.add_score(1)
 
     def render(self, screen):
         screen.fill((0, 0, 0))
@@ -64,3 +72,6 @@ class Gameplay(State):
 
         score_text = self.font.render(f"Score: {self.score}", True, (255, 255, 255))
         screen.blit(score_text, (10, 10))
+
+    def add_score(self, amount):
+        self.score += amount

@@ -8,6 +8,7 @@ class Player:
         self.speed = 5  # Vitesse de déplacement
         self.projectiles = []  # Liste des projectiles tirés par le joueur
         self.shoot_cooldown = 0  # Temps de recharge pour le tir (en frames)
+        self.is_dead = False  # Indique si le joueur est mort
 
         # Charger les sprites
         self.sprites = self.load_sprites(sprite_paths)
