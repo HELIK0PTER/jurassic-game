@@ -1,19 +1,57 @@
 import pygame
 import random
 
+
 class Dinosaur:
-    def __init__(self):
-        # Chargement des frames d'animation (6 images)
+    def __init__(self, dino_type=None):
+        """
+        Initialise un dinosaure en fonction de son type.
+        Si aucun type n'est spécifié, un type est choisi aléatoirement.
+        """
+        # Choisir un type de dinosaure aléatoire si aucun n'est fourni
+        if dino_type is None:
+            dino_type = random.choice(["DinoNormal", "DinoRapide", "DinoLent"])
+
+        self.dino_type = dino_type
+
+        # Définir les caractéristiques en fonction du type de dinosaure
+        if dino_type == "DinoNormal":
+            self.animation_frames = [
+                pygame.image.load(f"assets/images/DinoNormal{i}.png") for i in range(1, 6)
+            ]
+            self.speed = 1
+            self.health = 100
+            self.max_health = 100
+            self.size = (70, 50)  # Taille normale
+        elif dino_type == "DinoRapide":
+            self.animation_frames = [
+                pygame.image.load(f"assets/images/DinoRapide{i}.png") for i in range(1, 10)
+            ]
+            self.speed = 2
+            self.health = 25
+            self.max_health = 25
+            self.size = (50, 30)  # Taille petite
+        elif dino_type == "DinoLent":
+            self.animation_frames = [
+                pygame.image.load(f"assets/images/DinoLent{i}.png") for i in range(1, 12)
+            ]
+            self.speed = 0.25
+            self.health = 150
+            self.max_health = 150
+            self.size = (90, 70)  # Taille grande
+        else:
+            raise ValueError(f"Type de dinosaure inconnu : {dino_type}")
+
+        # Redimensionner les frames pour correspondre à la taille
         self.animation_frames = [
-            pygame.image.load(f"assets/images/raptor-run{i}.png") for i in range(1, 7)
+            pygame.transform.scale(frame, self.size) for frame in self.animation_frames
         ]
+
         self.current_frame = 0  # Frame actuelle de l'animation
         self.image = self.animation_frames[int(self.current_frame)]
         self.rect = self.image.get_rect()
         self.random_spawn()  # Position aléatoire
-        self.speed = 2  # Vitesse de déplacement
-        self.health = 100  # Santé actuelle
-        self.max_health = 100  # Santé maximale
+        self.direction = "right"  # Direction initiale ("left" ou "right")
 
     def random_spawn(self):
         """
@@ -35,12 +73,14 @@ class Dinosaur:
 
     def move_towards_player(self, player_rect):
         """
-        Déplace le dinosaure vers le joueur.
+        Déplace le dinosaure vers le joueur et ajuste la direction.
         """
         if self.rect.x < player_rect.x:
             self.rect.x += self.speed
+            self.direction = "right"
         elif self.rect.x > player_rect.x:
             self.rect.x -= self.speed
+            self.direction = "left"
 
         if self.rect.y < player_rect.y:
             self.rect.y += self.speed
@@ -63,7 +103,12 @@ class Dinosaur:
         self.current_frame += 0.2  # Change de frame progressivement (ajustez la vitesse si nécessaire)
         if self.current_frame >= len(self.animation_frames):
             self.current_frame = 0  # Boucle sur les frames
-        self.image = self.animation_frames[int(self.current_frame)]  # Change l'image
+
+        # Choix de l'image en fonction de la direction
+        if self.direction == "left":
+            self.image = pygame.transform.flip(self.animation_frames[int(self.current_frame)], True, False)
+        else:
+            self.image = self.animation_frames[int(self.current_frame)]
 
     def draw(self, screen):
         """
@@ -78,4 +123,5 @@ class Dinosaur:
         # Barre verte (santé restante)
         pygame.draw.rect(screen, (0, 255, 0), (self.rect.x, self.rect.y - 10, health_bar_width * health_ratio, 5))
         # Barre rouge (santé perdue)
-        pygame.draw.rect(screen, (255, 0, 0), (self.rect.x + health_bar_width * health_ratio, self.rect.y - 10, health_bar_width * (1 - health_ratio), 5))
+        pygame.draw.rect(screen, (255, 0, 0), (
+        self.rect.x + health_bar_width * health_ratio, self.rect.y - 10, health_bar_width * (1 - health_ratio), 5))
