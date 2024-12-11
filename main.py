@@ -16,7 +16,6 @@ states = {
     "MAIN_MENU": MainMenu(),
     "GAMEPLAY": Gameplay(),
     "GAMEOVER": GameOver(),
-    "EXIT": "EXIT",
     }
 current_state = states["MAIN_MENU"]
 
