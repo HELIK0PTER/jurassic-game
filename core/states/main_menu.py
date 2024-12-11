@@ -16,21 +16,27 @@ jurassic_logo = pygame.transform.scale(jurassic_logo, (250, 200))
 # Chargement des icônes des boutons
 icon_trophy = pygame.image.load("assets/images/menu_leaderboard.png")
 icon_trophy = pygame.transform.scale(icon_trophy, (80, 80))
+icon_trophy_on = pygame.image.load("assets/images/menu_leaderboard_up.png")  # Image animée
+icon_trophy_on = pygame.transform.scale(icon_trophy_on, (80, 80))
 icon_play = pygame.image.load("assets/images/menu_play.png")
 icon_play = pygame.transform.scale(icon_play, (80, 80))
 icon_play_on = pygame.image.load("assets/images/menu_play_up.png")  # Image animée
 icon_play_on = pygame.transform.scale(icon_play_on, (80, 80))
 icon_settings = pygame.image.load("assets/images/menu_settings.png")
 icon_settings = pygame.transform.scale(icon_settings, (80, 80))
+icon_settings_on = pygame.image.load("assets/images/menu_settings_up.png")  # Image animée
+icon_settings_on = pygame.transform.scale(icon_settings_on, (80, 80))
 icon_exit = pygame.image.load("assets/images/menu_exit.png")
 icon_exit = pygame.transform.scale(icon_exit, (80, 80))
+icon_exit_on = pygame.image.load("assets/images/menu_exit_up.png")  # Image animée
+icon_exit_on = pygame.transform.scale(icon_exit_on, (80, 80))
 
 # Définition des boutons (avec les icônes)
 buttons = [
     {"rect": pygame.Rect(300, 350, 80, 80), "icon": icon_play,"icon_on": icon_play_on ,"active_icon": icon_play_on, "label": "GAMEPLAY"},
-    {"rect": pygame.Rect(440, 350, 80, 80), "icon": icon_trophy, "active_icon": None, "label": "TROPHY"},
-    {"rect": pygame.Rect(300, 450, 80, 80), "icon": icon_settings, "active_icon": None, "label": "SETTINGS"},
-    {"rect": pygame.Rect(440, 450, 80, 80), "icon": icon_exit, "active_icon": None, "label": "EXIT"},
+    {"rect": pygame.Rect(440, 350, 80, 80), "icon": icon_trophy,"icon_on": icon_trophy_on ,"active_icon": icon_trophy_on, "label": "TROPHY"},
+    {"rect": pygame.Rect(300, 450, 80, 80), "icon": icon_settings,"icon_on": icon_settings_on ,"active_icon": icon_settings_on, "label": "SETTINGS"},
+    {"rect": pygame.Rect(440, 450, 80, 80), "icon": icon_exit,"icon_on": icon_exit_on , "active_icon": icon_exit_on, "label": "EXIT"},
 ]
 
 # Fonction pour dessiner les boutons
