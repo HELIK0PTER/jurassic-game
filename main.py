@@ -1,7 +1,10 @@
 import pygame
+
+from core.events import handle_quit
 from core.states.main_menu import MainMenu
 from core.states.gameplay import Gameplay
 from core.states.gameover import GameOver
+from core.states.settings import Settings
 
 # Initialisation
 pygame.init()
@@ -14,8 +17,8 @@ states = {
     "MAIN_MENU": MainMenu(),
     "GAMEPLAY": Gameplay(),
     "GAMEOVER": GameOver(),
-
-}
+    "SETTINGS": Settings(),
+    }
 current_state = states["MAIN_MENU"]
 
 # Boucle principale
@@ -35,6 +38,11 @@ while True:
         elif current_state.next_state == "GAMEOVER":
             states["GAMEOVER"] = GameOver(states["GAMEPLAY"].score)
             current_state = states["GAMEOVER"]
+        elif current_state.next_state == "EXIT":
+            handle_quit()
+        elif current_state.next_state == "SETTINGS":
+            states["SETTINGS"] = Settings()
+            current_state = states["SETTINGS"]
         else:
             current_state = states[current_state.next_state]
 

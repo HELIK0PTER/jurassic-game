@@ -2,8 +2,19 @@ import pygame
 from entities.projectile import Projectile
 import math
 
+player_sprite_paths = {
+    'up': 'assets/images/player/player_up.png',
+    'down': 'assets/images/player/player_down.png',
+    'left': 'assets/images/player/player_left.png',
+    'right': 'assets/images/player/player_right.png',
+    'upleft': 'assets/images/player/player_upleft.png',
+    'upright': 'assets/images/player/player_upright.png',
+    'downleft': 'assets/images/player/player_downleft.png',
+    'downright': 'assets/images/player/player_downright.png',
+}
+
 class Player:
-    def __init__(self, x, y, sprite_paths):
+    def __init__(self, x, y):
         self.rect = pygame.Rect(x, y, 50, 50)  # Rectangle représentant le joueur
         self.speed = 5  # Vitesse de déplacement
         self.projectiles = []  # Liste des projectiles tirés par le joueur
@@ -11,7 +22,7 @@ class Player:
         self.is_dead = False  # Indique si le joueur est mort
 
         # Charger les sprites
-        self.sprites = self.load_sprites(sprite_paths)
+        self.sprites = self.load_sprites(player_sprite_paths)
         self.current_sprite = self.sprites['down']  # Sprite initial
         self.direction = 'down'
 
