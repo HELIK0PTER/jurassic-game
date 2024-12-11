@@ -27,6 +27,10 @@ class Settings(State):
         self.volume = 50  # Volume initial (entre 0 et 100)
         self.volume_bar_rect = pygame.Rect(300, 400, 200, 20)  # Rectangle pour la barre de volume
 
+        # Variable pour gérer le clignotement du texte
+        self.blink_timer = 0  # Chronomètre
+        self.show_text = True  # Contrôle l'apparition/disparition du texte
+
     def handle_events(self, events):
         for event in events:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
@@ -65,10 +69,18 @@ class Settings(State):
         volume_label = self.font_theme.render(f"Volume: {self.volume}%", True, WHITE)
         screen.blit(volume_label, (self.volume_bar_rect.x, self.volume_bar_rect.y - 40))
 
+        # Affiche la phrase clignotante sous la barre de volume
+        if self.show_text:
+            exit_text = self.font_theme.render("Press ESC to exit Settings", True, WHITE)
+            screen.blit(exit_text, (WIDTH // 2 - exit_text.get_width() // 2, 450))  # Position sous la barre
+
         # Affiche l'heure actuelle
         current_time = datetime.datetime.now().strftime("%H:%M")
         time_text = self.font_theme.render(f"Time: {current_time}", True, WHITE)
         screen.blit(time_text, (WIDTH - 200, HEIGHT - 50))  # En bas à droite
 
     def update(self):
-        pass
+        # Met à jour le clignotement du texte
+        self.blink_timer += 1
+        if self.blink_timer % 60 == 0:  # Change toutes les 30 frames
+            self.show_text = not self.show_text
