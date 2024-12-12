@@ -63,7 +63,7 @@ class MainMenu(State):
 
         # Initialisation des boutons
         self.play_button = Button(300, 350, 80, 80, icon_play, icon_play_on, "PROMPT_NAME")
-        self.trophy_button = Button(440, 350, 80, 80, icon_trophy, icon_trophy_on, "TROPHY")
+        self.trophy_button = Button(440, 350, 80, 80, icon_trophy, icon_trophy_on, "Leaderboard")
         self.settings_button = Button(300, 450, 80, 80, icon_settings, icon_settings_on, "SETTINGS")
         self.exit_button = Button(440, 450, 80, 80, icon_exit, icon_exit_on, "EXIT")
 
