@@ -26,6 +26,9 @@ class Gameplay(State):
         self.shoot_sound = pygame.mixer.Sound("assets/sounds/pistolet.ogg")
         self.shoot_sound.set_volume(0.7)  # Volume normal pour les sons de tir (entre 0 et 1)
 
+        # Charger l'image de fond
+        self.background_image = pygame.image.load("assets/images/map/map_background.png")
+
     def handle_events(self, events):
         keys = pygame.key.get_pressed()
         self.player.move(keys)
@@ -73,11 +76,21 @@ class Gameplay(State):
             self.add_score(1)
 
     def render(self, screen):
-        screen.fill((0, 0, 0))
+        # Obtenir la taille de l'écran et de l'image
+        screen_width, screen_height = screen.get_size()
+        tile_width, tile_height = self.background_image.get_size()
+
+        # Dessiner le fond de manière répétitive
+        for x in range(0, screen_width, tile_width):
+            for y in range(0, screen_height, tile_height):
+                screen.blit(self.background_image, (x, y))
+
+        # Dessiner les entités
         self.player.draw(screen)
         for enemy in self.enemies:
             enemy.draw(screen)
 
+        # Dessiner le score
         score_text = self.font.render(f"Score: {self.score}", True, (255, 255, 255))
         screen.blit(score_text, (10, 10))
 
