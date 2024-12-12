@@ -40,7 +40,7 @@ while True:
             states["GAMEPLAY"] = Gameplay(states["PROMPT_NAME"].player_name)
             current_state = states["GAMEPLAY"]
         elif current_state.next_state == "GAMEOVER":
-            states["GAMEOVER"] = GameOver(states["GAMEPLAY"].score)
+            states["GAMEOVER"] = GameOver(states["GAMEPLAY"].score, current_state.player_name)
             current_state = states["GAMEOVER"]
         elif current_state.next_state == "EXIT":
             handle_quit()
