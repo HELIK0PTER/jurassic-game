@@ -3,14 +3,36 @@ from entities.projectile import Projectile, FireAnimation
 import math
 
 player_sprite_paths = {
-    'up': 'assets/images/player/player_up.png',
-    'down': 'assets/images/player/player_down.png',
-    'left': 'assets/images/player/player_left.png',
-    'right': 'assets/images/player/player_right.png',
-    'upleft': 'assets/images/player/player_upleft.png',
-    'upright': 'assets/images/player/player_upright.png',
-    'downleft': 'assets/images/player/player_downleft.png',
-    'downright': 'assets/images/player/player_downright.png',
+    'default': {
+        'up': 'assets/images/player/player_up.png',
+        'down': 'assets/images/player/player_down.png',
+        'left': 'assets/images/player/player_left.png',
+        'right': 'assets/images/player/player_right.png',
+        'upleft': 'assets/images/player/player_upleft.png',
+        'upright': 'assets/images/player/player_upright.png',
+        'downleft': 'assets/images/player/player_downleft.png',
+        'downright': 'assets/images/player/player_downright.png',
+    },
+    'speed': {
+        'up': 'assets/images/player/speed_up.png',
+        'down': 'assets/images/player/speed_down.png',
+        'left': 'assets/images/player/speed_left.png',
+        'right': 'assets/images/player/speed_right.png',
+        'upleft': 'assets/images/player/speed_upleft.png',
+        'upright': 'assets/images/player/speed_upright.png',
+        'downleft': 'assets/images/player/speed_downleft.png',
+        'downright': 'assets/images/player/speed_downright.png',
+    },
+    'fire_rate': {
+        'up': 'assets/images/player/fire_up.png',
+        'down': 'assets/images/player/fire_down.png',
+        'left': 'assets/images/player/fire_left.png',
+        'right': 'assets/images/player/fire_right.png',
+        'upleft': 'assets/images/player/fire_upleft.png',
+        'upright': 'assets/images/player/fire_upright.png',
+        'downleft': 'assets/images/player/fire_downleft.png',
+        'downright': 'assets/images/player/fire_downright.png',
+    }
 }
 
 class Player:
@@ -19,27 +41,25 @@ class Player:
         self.speed = 5  # Vitesse de déplacement
         self.projectiles = []  # Liste des projectiles tirés par le joueur
         self.fires = []  # Liste des animations de feu
-        self.shoot_cooldown = 0  # Temps de recharge pour le tir (en frames)
+        self.shoot_cooldown = 0  # Compteur de temps de recharge pour le tir (en frames)
+        self.default_cooldown = 30
         self.is_dead = False  # Indique si le joueur est mort
+        self.active_bonus = 'default'  # Bonus actif (par défaut : aucun)
 
         # Charger les sprites
-        self.sprites = self.load_sprites(player_sprite_paths)
-        self.current_sprite = self.sprites['down']  # Sprite initial
+        self.sprites = self.load_all_sprites()
+        self.current_sprite = self.sprites['default']['down']  # Sprite initial
         self.direction = 'down'
 
-    def load_sprites(self, sprite_paths):
+    def load_all_sprites(self):
         """
-        Charge les images de sprites à partir des chemins donnés.
+        Charge tous les sprites pour les états par défaut, speed et fire_rate.
         """
         return {
-            'up': pygame.image.load(sprite_paths['up']).convert_alpha(),
-            'down': pygame.image.load(sprite_paths['down']).convert_alpha(),
-            'left': pygame.image.load(sprite_paths['left']).convert_alpha(),
-            'right': pygame.image.load(sprite_paths['right']).convert_alpha(),
-            'upleft': pygame.image.load(sprite_paths['upleft']).convert_alpha(),
-            'upright': pygame.image.load(sprite_paths['upright']).convert_alpha(),
-            'downleft': pygame.image.load(sprite_paths['downleft']).convert_alpha(),
-            'downright': pygame.image.load(sprite_paths['downright']).convert_alpha(),
+            bonus: {
+                direction: pygame.image.load(path).convert_alpha()
+                for direction, path in sprite_paths.items()
+            } for bonus, sprite_paths in player_sprite_paths.items()
         }
 
     def move(self, keys):
@@ -79,7 +99,28 @@ class Player:
             self.direction = 'up'
 
         # Mettre à jour le sprite courant
-        self.current_sprite = self.sprites[self.direction]
+        self.current_sprite = self.sprites[self.active_bonus][self.direction]
+
+    def apply_bonus(self, bonus_type):
+        """
+        Applique un bonus au joueur et change son sprite.
+        """
+        self.active_bonus = bonus_type
+        if bonus_type == 'speed':
+            self.speed += 2
+        elif bonus_type == 'fire_rate':
+            self.shoot_cooldown = max(1, self.shoot_cooldown // 5)
+
+    def reset_bonus(self):
+        """
+        Réinitialise les bonus et revient au sprite par défaut.
+        """
+        if self.active_bonus == 'speed':
+            self.speed = 5
+        elif self.active_bonus == 'fire_rate':
+            self.shoot_cooldown = self.default_cooldown
+        self.active_bonus = 'default'
+        self.current_sprite = self.sprites['default'][self.direction]
 
     def shoot(self, mouse_pos, sound):
         """
@@ -98,7 +139,7 @@ class Player:
             self.fires.append(fire)
 
             # Activer le cooldown
-            self.shoot_cooldown = 60 // 2
+            self.shoot_cooldown = self.default_cooldown
 
             # Jouer le son de tir
             sound.play()
@@ -128,9 +169,47 @@ class Player:
         # Mettre à jour les feux
         self.update_fires()
 
-    def draw(self, screen):
+    def draw_cursor(self, screen, mouse_pos):
         """
-        Dessine le sprite actuel, les projectiles et les animations de feu.
+        Dessine un curseur en forme de triangle rouge effectuant une rotation autour du joueur
+        tout en pointant vers la souris.
+        """
+        # Calcul de l'angle vers la souris
+        dx, dy = mouse_pos[0] - self.rect.centerx, mouse_pos[1] - self.rect.centery
+        angle = math.atan2(dy, dx)
+
+        # Rayon pour la pointe du triangle (distance du joueur)
+        radius = 50  # Diminuez cette valeur pour rapprocher la pointe
+
+        # Rayon pour la base du triangle
+        base_radius = radius - 10  # Déplace légèrement la base en retrait
+        base_width = 20  # Réduisez cette valeur pour diminuer la largeur de la base
+
+        # Position de la pointe du triangle (sur le cercle)
+        tip_x = self.rect.centerx + math.cos(angle) * radius
+        tip_y = self.rect.centery + math.sin(angle) * radius
+
+        # Position du centre de la base (légèrement en retrait)
+        base_center_x = self.rect.centerx + math.cos(angle) * base_radius
+        base_center_y = self.rect.centery + math.sin(angle) * base_radius
+
+        # Points de la base du triangle
+        base_left_x = base_center_x + math.cos(angle + math.pi / 2) * base_width / 2
+        base_left_y = base_center_y + math.sin(angle + math.pi / 2) * base_width / 2
+
+        base_right_x = base_center_x + math.cos(angle - math.pi / 2) * base_width / 2
+        base_right_y = base_center_y + math.sin(angle - math.pi / 2) * base_width / 2
+
+        # Dessiner le triangle
+        pygame.draw.polygon(screen, (255, 0, 0), [
+            (tip_x, tip_y),  # Pointe du triangle
+            (base_left_x, base_left_y),  # Base gauche
+            (base_right_x, base_right_y)  # Base droite
+        ])
+
+    def draw(self, screen, mouse_pos):
+        """
+        Dessine le sprite actuel, les projectiles, les animations de feu et le curseur.
         """
         # Dessiner le joueur
         screen.blit(self.current_sprite, (self.rect.x, self.rect.y))
@@ -143,3 +222,11 @@ class Player:
         for fire in self.fires:
             fire.draw(screen)
 
+        # Dessiner le curseur
+        self.draw_cursor(screen, mouse_pos)
+
+# Correction dans le gameplay (ajouter mouse_pos à l'appel de draw)
+def render(self, screen):
+    screen.fill((0, 0, 0))
+    mouse_pos = pygame.mouse.get_pos()  # Obtenez la position actuelle de la souris
+    self.player.draw(screen, mouse_pos)  # Passez la position de la souris
