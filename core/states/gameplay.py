@@ -29,6 +29,13 @@ class Gameplay(State):
         # Charger l'image de fond
         self.background_image = pygame.image.load("assets/images/map/map_background.png")
 
+        # Charger les images des éléments fixes (ex. arbres, rochers)
+        self.decor_elements = [
+            {"image": pygame.image.load("assets/images/map/trees/tree1.png"), "position": (100, 150)},
+            {"image": pygame.image.load("assets/images/map/rock/rock1.png"), "position": (300, 400)},
+            {"image": pygame.image.load("assets/images/map/hole.png"), "position": (500, 200)}
+        ]
+
     def handle_events(self, events):
         keys = pygame.key.get_pressed()
         self.player.move(keys)
@@ -84,6 +91,10 @@ class Gameplay(State):
         for x in range(0, screen_width, tile_width):
             for y in range(0, screen_height, tile_height):
                 screen.blit(self.background_image, (x, y))
+
+        # Dessiner les éléments fixes du décor
+        for element in self.decor_elements:
+            screen.blit(element["image"], element["position"])
 
         # Dessiner les entités
         self.player.draw(screen)
