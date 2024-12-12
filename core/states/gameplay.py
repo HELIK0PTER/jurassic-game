@@ -13,8 +13,8 @@ bonus_images = {
 
 class Bonus:
     def __init__(self, x, y, bonus_type):
-        self.rect = pygame.Rect(x, y, 30, 30)
-        self.type = bonus_type
+        self.rect = pygame.Rect(x, y, 30, 30)  # Taille du bonus
+        self.type = bonus_type  # Type de bonus : 'speed', 'fire_rate'
 
     def get_image(self):
         return bonus_images.get(self.type, None)
@@ -28,10 +28,10 @@ class Gameplay(State):
         super().__init__()
         self.player = Player(375, 275)
         self.enemies = []
-        self.bonuses = []
+        self.bonuses = []  # Liste des bonus
         self.spawn_timer = 0
         self.bonus_timer = 0
-        self.player_name = player_name
+        self.player_name = player_name  # Stocke le pseudo du joueur
         self.score = 0
         self.font = pygame.font.Font(None, 36)
 
@@ -39,6 +39,8 @@ class Gameplay(State):
         pygame.mixer.init()
         pygame.mixer.music.load("assets/sounds/background_song.mp3")
         pygame.mixer.music.play(-1)
+
+        # Charger les sons
         self.shoot_sound = pygame.mixer.Sound("assets/sounds/pistolet.ogg")
         self.shoot_sound.set_volume(0.7)
 
@@ -89,10 +91,10 @@ class Gameplay(State):
                 self.player.shoot(mouse_pos, self.shoot_sound)
 
         for event in events:
-            if event.type == pygame.USEREVENT + 1:
-                self.player.reset_bonus()
-            elif event.type == pygame.USEREVENT + 2:
-                self.player.reset_bonus()
+            if event.type == pygame.USEREVENT + 1:  # Réinitialiser bonus vitesse
+                self.player.reset_bonus('speed')
+            elif event.type == pygame.USEREVENT + 2:  # Réinitialiser bonus cadence
+                self.player.reset_bonus('fire_rate')
 
     def update(self):
         if not self.player.is_dead:
@@ -123,13 +125,9 @@ class Gameplay(State):
             # Mettre à jour les ennemis
             self.update_enemies()
 
-    def apply_bonus_effect(self, bonus):
-        if bonus.type == 'speed':
-            self.player.apply_bonus('speed')
-            pygame.time.set_timer(pygame.USEREVENT + 1, 4000)
-        elif bonus.type == 'fire_rate':
-            self.player.apply_bonus('fire_rate')
-            pygame.time.set_timer(pygame.USEREVENT + 2, 5000)
+        # Mise à jour du score
+        if pygame.time.get_ticks() % 60 == 0:
+            self.add_score(1)
 
     def update_enemies(self):
         for enemy in self.enemies[:]:
@@ -137,18 +135,45 @@ class Gameplay(State):
                 self.enemies.remove(enemy)
                 self.add_score(10)
                 continue
+
             enemy.move_towards_player(self.player.rect)
 
             for projectile in self.player.projectiles[:]:
                 if projectile.rect.colliderect(enemy.rect):
                     self.player.projectiles.remove(projectile)
                     if enemy.take_damage(25):
-                        pass  # Placeholder pour une animation ou effet
+                        pass
 
             if self.player.rect.colliderect(enemy.rect):
                 self.player.die()
                 self.gameover_delay = pygame.time.get_ticks() + 1000
                 pygame.mixer.music.stop()
+                self.next_state = "GAMEOVER"
+
+    def render_bonus_bars(self, screen):
+        """Dessine les barres de progression des bonus en haut à droite de l'écran."""
+        bar_width = 200
+        bar_height = 20
+        margin = 10
+
+        # Position des barres
+        speed_bar_x = screen.get_width() - bar_width - margin
+        speed_bar_y = margin
+        fire_rate_bar_x = screen.get_width() - bar_width - margin
+        fire_rate_bar_y = margin + bar_height + margin
+
+        # Durée et progression
+        if self.player.bonus_timers['speed'] > 0:
+            speed_progress = (self.player.bonus_timers['speed'] / (60 * 5)) * bar_width
+            pygame.draw.rect(screen, (255, 255, 0), (speed_bar_x, speed_bar_y, speed_progress, bar_height))
+            speed_text = self.font.render("Speed", True, (0, 0, 0))
+            screen.blit(speed_text, (speed_bar_x + (bar_width - speed_text.get_width()) // 2, speed_bar_y + (bar_height - speed_text.get_height()) // 2))
+
+        if self.player.bonus_timers['fire_rate'] > 0:
+            fire_rate_progress = (self.player.bonus_timers['fire_rate'] / (60 * 5)) * bar_width
+            pygame.draw.rect(screen, (128, 128, 128), (fire_rate_bar_x, fire_rate_bar_y, fire_rate_progress, bar_height))
+            fire_rate_text = self.font.render("Mini Gun", True, (255, 255, 255))
+            screen.blit(fire_rate_text, (fire_rate_bar_x + (bar_width - fire_rate_text.get_width()) // 2, fire_rate_bar_y + (bar_height - fire_rate_text.get_height()) // 2))
 
     def render(self, screen):
         mouse_pos = pygame.mouse.get_pos()
@@ -170,19 +195,15 @@ class Gameplay(State):
             enemy.draw(screen)
         for bonus in self.bonuses:
             bonus.draw(screen)
+
         self.player.draw(screen, mouse_pos)
+
+        # Dessiner les barres de progression des bonus
+        self.render_bonus_bars(screen)
 
         # Afficher le score
         score_text = self.font.render(f"Score: {self.score}", True, (255, 255, 255))
         screen.blit(score_text, (10, 10))
-
-    def save_score(self):
-        try:
-            with open("saves/saved_scores.txt", "a") as file:
-                file.write(f"{self.player_name}:{self.score}\n")
-            print(f"Score de {self.player_name} ({self.score}) sauvegardé avec succès.")
-        except Exception as e:
-            print(f"Erreur lors de la sauvegarde du score : {e}")
 
     def add_score(self, amount):
         self.score += amount
