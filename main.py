@@ -6,6 +6,7 @@ from core.states.gameplay import Gameplay
 from core.states.gameover import GameOver
 from core.states.settings import Settings
 from core.states.prompt_name import PromptName
+from core.states.leaderboard import Leaderboard
 
 # Initialisation
 pygame.init()
@@ -20,6 +21,7 @@ states = {
     "GAMEOVER": GameOver(),
     "SETTINGS": Settings(),
     "PROMPT_NAME": PromptName(),
+    "Leaderboard": Leaderboard(),
     }
 current_state = states["MAIN_MENU"]
 
@@ -48,6 +50,9 @@ while True:
         elif current_state.next_state == "PROMPT_NAME":
             states["PROMPT_NAME"] = PromptName()
             current_state = states["PROMPT_NAME"]
+        elif current_state.next_state == "Leaderboard":
+            states["Leaderboard"] = Settings()
+            current_state = states["Leaderboard"]
         else:
             current_state = states[current_state.next_state]
 
