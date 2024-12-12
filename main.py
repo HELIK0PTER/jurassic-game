@@ -1,5 +1,4 @@
 import pygame
-from Scripts.activate_this import prev_length
 
 from core.events import handle_quit
 from core.states.main_menu import MainMenu
@@ -7,6 +6,7 @@ from core.states.gameplay import Gameplay
 from core.states.gameover import GameOver
 from core.states.settings import Settings
 from core.states.prompt_name import PromptName
+from core.states.leaderboard import Leaderboard
 
 # Initialisation
 pygame.init()
@@ -28,7 +28,8 @@ states = {
     "GAMEOVER": GameOver(),
     "SETTINGS": Settings(),
     "PROMPT_NAME": PromptName(),
-}
+    "Leaderboard": Leaderboard(),
+    }
 current_state = states["MAIN_MENU"]
 current_state.play_welcome_and_background()
 
@@ -54,7 +55,7 @@ while True:
             if previous_state == "MAIN_MENU":
                 previous_state = "GAMEPLAY"
         elif current_state.next_state == "GAMEOVER":
-            states["GAMEOVER"] = GameOver(states["GAMEPLAY"].score)
+            states["GAMEOVER"] = GameOver(states["GAMEPLAY"].score, current_state.player_name)
             current_state = states["GAMEOVER"]
             if previous_state == "GAMEPLAY":
                 previous_state = "GAMEOVER"
@@ -66,6 +67,9 @@ while True:
         elif current_state.next_state == "PROMPT_NAME":
             states["PROMPT_NAME"] = PromptName()
             current_state = states["PROMPT_NAME"]
+        elif current_state.next_state == "Leaderboard":
+            states["Leaderboard"] = Leaderboard()
+            current_state = states["Leaderboard"]
         else:
             current_state = states[current_state.next_state]
 

@@ -10,7 +10,7 @@ class Gameplay(State):
         self.player = Player(375, 275)
         self.enemies = []
         self.spawn_timer = 0
-        self.player_name = player_name
+        self.player_name = player_name  # Stocke le pseudo du joueur
         self.score = 0
         self.font = pygame.font.Font(None, 36)
 
@@ -68,7 +68,12 @@ class Gameplay(State):
                 self.enemies.clear()  # Clear les ennemis
                 self.player.rect.x = 375  # Reset la position du joueur
                 self.player.rect.y = 275
+                # Passer à l'état GameOver avec le score et le pseudo
                 self.next_state = "GAMEOVER"
+                self.next_state_data = {
+                    "score": self.score,
+                    "player_name": self.player_name  # Transmission du pseudo
+                }
                 return  # Arrêter le reste de l'exécution de cette frame
 
         # Mettre à jour le score tous les 60 ticks
@@ -86,6 +91,15 @@ class Gameplay(State):
         # Afficher le score
         score_text = self.font.render(f"Score: {self.score}", True, (255, 255, 255))
         screen.blit(score_text, (10, 10))
+
+    def save_score(self):
+        """Sauvegarde le score actuel dans le fichier `saves/saved_scores.txt`."""
+        try:
+            with open("saves/saved_scores.txt", "a") as file:
+                file.write(f"{self.player_name}:{self.score}\n")
+            print(f"Score de {self.player_name} ({self.score}) sauvegardé avec succès.")
+        except Exception as e:
+            print(f"Erreur lors de la sauvegarde du score : {e}")
 
     def add_score(self, amount):
         self.score += amount

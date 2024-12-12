@@ -5,21 +5,21 @@ from core.states.state import State
 # Dimensions de la fenêtre
 WIDTH, HEIGHT = 800, 600
 
-
 class GameOver(State):
-    def __init__(self, score=0):
+    def __init__(self, score=0, player_name="Player"):
         super().__init__()
-        # Chargement de l'image de fond
-        self.background = pygame.image.load("assets/images/gameover.jpg")
-        self.background = pygame.transform.scale(self.background, (800, 600))
-
-        # Chargement de la police thématique
-        self.font_text = pygame.font.Font("assets/fonts/SpecialElite-Regular.ttf", 36)
-
-        # Textes
-        self.score = score
+        self.score = score  # Le score du joueur
+        self.player_name = player_name  # Le nom du joueur
+        self.save_score()  # Sauvegarde directement le score
         self.restart_message = "Press ENTER to return at Menu"
         self.blink = True
+
+        # Chargement de l'image de fond
+        self.background = pygame.image.load("assets/images/gameover.jpg")
+        self.background = pygame.transform.scale(self.background, (WIDTH, HEIGHT))  # Mettre à l'échelle
+
+        # Initialisation de la police de texte
+        self.font_text = pygame.font.Font("assets/fonts/SpecialElite-Regular.ttf", 36)
 
         # Chronomètre pour gérer le clignotement
         self.last_blink_time = pygame.time.get_ticks()
@@ -38,6 +38,15 @@ class GameOver(State):
         # Initialiser le chronomètre pour l'image des griffures
         self.scratch_time = None  # Temps où l'image doit apparaître
         self.image_displayed = False  # Vérifier si l'image a été affichée
+
+    def save_score(self):
+        """Sauvegarde le score actuel dans le fichier `saves/saved_scores.txt`."""
+        try:
+            with open("saves/saved_scores.txt", "a") as file:
+                file.write(f"{self.player_name}:{self.score}\n")
+            print(f"Score de {self.player_name} ({self.score}) sauvegardé avec succès.")
+        except Exception as e:
+            print(f"Erreur lors de la sauvegarde du score : {e}")
 
     def update(self):
         # Jouer le son uniquement lors du premier update
@@ -76,6 +85,10 @@ class GameOver(State):
         # Affiche le score légèrement sous le haut de l'écran
         score_text = self.font_text.render(f"Score: {self.score}", True, (255, 255, 255))
         screen.blit(score_text, (WIDTH // 2 - score_text.get_width() // 2, 20))  # Positionné juste sous le haut
+
+        # Affiche le nom du joueur
+        player_name_text = self.font_text.render(f"Player: {self.player_name}", True, (255, 255, 255))
+        screen.blit(player_name_text, (WIDTH // 2 - player_name_text.get_width() // 2, 60))  # Un peu sous le score
 
         # Affiche l'heure actuelle
         current_time = datetime.datetime.now().strftime("%H:%M")
