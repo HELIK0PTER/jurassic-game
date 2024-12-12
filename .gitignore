@@ -7,4 +7,5 @@ __pycache__/
 *.pyo
 
 /saves/*
+!/saves/readme.md
 .config*
