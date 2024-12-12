@@ -31,8 +31,7 @@ class Gameplay(State):
         self.player.move(keys)
         mouse_pos = pygame.mouse.get_pos()
         if keys[pygame.K_SPACE]:
-            self.player.shoot(mouse_pos)
-            self.shoot_sound.play()  # Jouer le son de tir
+            self.player.shoot(mouse_pos, self.shoot_sound)
 
     def update(self):
         # Spawner des ennemis

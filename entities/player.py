@@ -81,7 +81,7 @@ class Player:
         # Mettre à jour le sprite courant
         self.current_sprite = self.sprites[self.direction]
 
-    def shoot(self, mouse_pos):
+    def shoot(self, mouse_pos, sound):
         """
         Tire un projectile en direction de la souris.
         """
@@ -99,6 +99,9 @@ class Player:
 
             # Activer le cooldown
             self.shoot_cooldown = 60 // 2
+
+            # Jouer le son de tir
+            sound.play()
 
     def update_fires(self):
         """

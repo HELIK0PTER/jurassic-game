@@ -14,7 +14,7 @@ jurassic_logo = pygame.image.load("assets/images/menu_logo.png")
 jurassic_logo = pygame.transform.scale(jurassic_logo, (250, 200))
 
 # Fichier de sauvegarde des scores et pseudos
-SAVED_SCORES_FILE = "saved_scores.txt"
+SAVED_SCORES_FILE = "saves/saved_scores.txt"
 
 
 class PromptName(State):

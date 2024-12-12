@@ -1,6 +1,4 @@
 import pygame
-import threading
-import time
 from core.states.state import State
 
 # Dimensions de la fenêtre
@@ -40,21 +38,28 @@ icon_exit_on = pygame.image.load("assets/images/menu_exit_up.png")  # Image anim
 icon_exit_on = pygame.transform.scale(icon_exit_on, (80, 80))
 
 
-class MainMenu(State):
-    welcome_played = False  # Attribut de classe pour vérifier si le son de bienvenue a été joué
+def restart_background_music():
+    """Redémarre la musique de fond en la relançant depuis le début."""
+    # Arrêter toute musique en cours
+    pygame.mixer.music.stop()
+    # Rejouer la musique en boucle
+    pygame.mixer.music.play(-1)
 
+
+def on_state_exit():
+    """Méthode appelée lors de la sortie de cet état (avant de passer à un autre état)."""
+    restart_background_music()  # Redémarrer la musique de fond avant de quitter l'état
+
+
+class MainMenu(State):
     def __init__(self):
         super().__init__()
         self.font = pygame.font.Font(None, 74)
         self.current_button = None
+        self.welcome_played = False  # Indique si le son de bienvenue a été joué
 
         # Initialisation de l'heure de départ du son de bienvenue pour chaque instance
         self.welcome_sound_start_time = None
-
-        # Vérifie si le son de bienvenue a été joué pour l'ensemble du jeu (partagé entre toutes les instances)
-        if not MainMenu.welcome_played:
-            self.play_welcome_and_background()
-            MainMenu.welcome_played = True  # Marque le son comme joué pour toutes les instances
 
         # Initialisation des boutons
         self.play_button = Button(300, 350, 80, 80, icon_play, icon_play_on, "PROMPT_NAME")
@@ -72,13 +77,6 @@ class MainMenu(State):
         # Démarrer la musique de fond si elle n'est pas déjà en cours
         if not pygame.mixer.music.get_busy():
             pygame.mixer.music.play(-1)  # -1 signifie jouer en boucle
-
-    def restart_background_music(self):
-        """Redémarre la musique de fond en la relançant depuis le début."""
-        # Arrêter toute musique en cours
-        pygame.mixer.music.stop()
-        # Rejouer la musique en boucle
-        pygame.mixer.music.play(-1)
 
     def handle_events(self, events):
         for event in events:
@@ -105,16 +103,12 @@ class MainMenu(State):
 
     def update(self):
         # Vérifier si le son de bienvenue est terminé et démarrer la musique de fond
-        if MainMenu.welcome_played and self.welcome_sound_start_time is not None:
+        if self.welcome_played and self.welcome_sound_start_time is not None:
             # Vérifier si le son de bienvenue est terminé
             if pygame.time.get_ticks() - self.welcome_sound_start_time >= welcome_sound.get_length() * 1000:
                 # Démarrer la musique de fond si elle n'est pas déjà en cours
                 if not pygame.mixer.music.get_busy():
                     pygame.mixer.music.play(-1)  # -1 signifie jouer en boucle
-
-    def on_state_exit(self):
-        """Méthode appelée lors de la sortie de cet état (avant de passer à un autre état)."""
-        self.restart_background_music()  # Redémarrer la musique de fond avant de quitter l'état
 
 
 class Button:
