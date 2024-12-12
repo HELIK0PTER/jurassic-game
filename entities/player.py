@@ -14,24 +14,24 @@ player_sprite_paths = {
         'downright': 'assets/images/player/player_downright.png',
     },
     'speed': {
-        'up': 'assets/images/player/speed_up.png',
-        'down': 'assets/images/player/speed_down.png',
-        'left': 'assets/images/player/speed_left.png',
-        'right': 'assets/images/player/speed_right.png',
-        'upleft': 'assets/images/player/speed_upleft.png',
-        'upright': 'assets/images/player/speed_upright.png',
-        'downleft': 'assets/images/player/speed_downleft.png',
-        'downright': 'assets/images/player/speed_downright.png',
+        'up': 'assets/images/player-bonus1/player_up.png',
+        'down': 'assets/images/player-bonus1/player_down.png',
+        'left': 'assets/images/player-bonus1/player_left.png',
+        'right': 'assets/images/player-bonus1/player_right.png',
+        'upleft': 'assets/images/player-bonus1/player_upleft.png',
+        'upright': 'assets/images/player-bonus1/player_upright.png',
+        'downleft': 'assets/images/player-bonus1/player_downleft.png',
+        'downright': 'assets/images/player-bonus1/player_downright.png',
     },
     'fire_rate': {
-        'up': 'assets/images/player/fire_up.png',
-        'down': 'assets/images/player/fire_down.png',
-        'left': 'assets/images/player/fire_left.png',
-        'right': 'assets/images/player/fire_right.png',
-        'upleft': 'assets/images/player/fire_upleft.png',
-        'upright': 'assets/images/player/fire_upright.png',
-        'downleft': 'assets/images/player/fire_downleft.png',
-        'downright': 'assets/images/player/fire_downright.png',
+        'up': 'assets/images/player-bonus2/player_up.png',
+        'down': 'assets/images/player-bonus2/player_down.png',
+        'left': 'assets/images/player-bonus2/player_left.png',
+        'right': 'assets/images/player-bonus2/player_right.png',
+        'upleft': 'assets/images/player-bonus2/player_upleft.png',
+        'upright': 'assets/images/player-bonus2/player_upright.png',
+        'downleft': 'assets/images/player-bonus2/player_downleft.png',
+        'downright': 'assets/images/player-bonus2/player_downright.png',
     }
 }
 
@@ -173,8 +173,24 @@ class Player:
         # Mettre à jour les feux
         self.update_fires()
 
-    def draw(self, screen):
+    def draw(self, screen, mouse_pos):
         """
+                Dessine le sprite actuel, les projectiles, les animations de feu et le curseur.
+                """
+        # Dessiner le joueur
+        screen.blit(self.current_sprite, (self.rect.x, self.rect.y))
+
+        # Dessiner les projectiles
+        for projectile in self.projectiles:
+            projectile.draw(screen)
+
+        # Dessiner les animations de feu
+        for fire in self.fires:
+            fire.draw(screen)
+
+        # Dessiner le curseur
+        # self.draw_cursor(screen, mouse_pos)
+
         # Calcul de l'angle vers la souris
         dx, dy = mouse_pos[0] - self.rect.centerx, mouse_pos[1] - self.rect.centery
         angle = math.atan2(dy, dx)
@@ -207,25 +223,6 @@ class Player:
             (base_left_x, base_left_y),  # Base gauche
             (base_right_x, base_right_y)  # Base droite
         ])
-        """
-
-    def draw(self, screen, mouse_pos):
-        """
-        Dessine le sprite actuel, les projectiles, les animations de feu et le curseur.
-        """
-        # Dessiner le joueur
-        screen.blit(self.current_sprite, (self.rect.x, self.rect.y))
-
-        # Dessiner les projectiles
-        for projectile in self.projectiles:
-            projectile.draw(screen)
-
-        # Dessiner les animations de feu
-        for fire in self.fires:
-            fire.draw(screen)
-
-        # Dessiner le curseur
-        self.draw_cursor(screen, mouse_pos)
 
 # Correction dans le gameplay (ajouter mouse_pos à l'appel de draw)
 def render(self, screen):

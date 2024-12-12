@@ -1,8 +1,30 @@
 import pygame
 import random
 from core.states.state import State
-from entities.player import Player
+from entities.obstacle import Obstacle
+from entities.player import Player, player_sprite_paths
 from entities.dinosaur import Dinosaur
+
+# images des bonus
+bonus_images = {
+    'speed': pygame.image.load("assets/images/player-bonus1/player_bonus1.png"),
+    'fire_rate': pygame.image.load("assets/images/player-bonus2/player_bonus2.png")
+}
+
+class Bonus:
+    def __init__(self, x, y, bonus_type):
+        self.rect = pygame.Rect(x, y, 30, 30)  # Taille du bonus
+        self.type = bonus_type  # Type de bonus : 'speed', 'fire_rate'
+
+    def get_image(self):
+        # Définir une couleur différente pour chaque type de bonus
+        if self.type == 'speed':
+            return bonus_images['speed']
+        elif self.type == 'fire_rate':
+            return bonus_images['fire_rate']
+
+    def draw(self, screen):
+        screen.blit(self.get_image(), self.rect)
 
 class Gameplay(State):
     def __init__(self, player_name=""):
@@ -28,13 +50,6 @@ class Gameplay(State):
         self.shoot_sound = pygame.mixer.Sound("assets/sounds/pistolet.ogg")
         self.shoot_sound.set_volume(0.7)  # Volume normal pour les sons de tir (entre 0 et 1)
 
-    def spawn_bonus(self):
-        if len(self.bonuses) < 3:  # Limiter le nombre de bonus actifs
-            x = random.randint(50, 750)  # Position aléatoire
-            y = random.randint(50, 550)
-            bonus_type = random.choice(['speed', 'fire_rate'])
-            self.bonuses.append(Bonus(x, y, bonus_type))
-
         # Charger l'image de fond
         self.background_image = pygame.image.load("assets/images/map/map_background.png")
 
@@ -53,6 +68,13 @@ class Gameplay(State):
 
         # Générer les éléments fixes aléatoires sur la carte avec une probabilité de 1/10 par case
         self.decor_elements = self.generate_random_decor(grid_size=50)  # Taille des cellules de la grille
+
+    def spawn_bonus(self):
+        if len(self.bonuses) < 3:  # Limiter le nombre de bonus actifs
+            x = random.randint(50, 750)  # Position aléatoire
+            y = random.randint(50, 550)
+            bonus_type = random.choice(['speed', 'fire_rate'])
+            self.bonuses.append(Bonus(x, y, bonus_type))
 
     def generate_random_decor(self, grid_size=50):
         """
@@ -103,7 +125,8 @@ class Gameplay(State):
                     self.player.speed += 2  # Augmenter la vitesse
                     pygame.time.set_timer(pygame.USEREVENT + 1, 4000)  # Rétablir la vitesse après 5 secondes
                 elif bonus.type == 'fire_rate':
-                    self.player.default_cooldown = min(5, self.player.default_cooldown // 5)  # Augmenter la cadence
+                    self.player.default_cooldown = max(10, self.player.default_cooldown // 5)  # Augmenter la cadence
+                    print(self.player.default_cooldown)
                     pygame.time.set_timer(pygame.USEREVENT + 2, 5000)  # Réinitialiser après 5 secondes
                 self.bonuses.remove(bonus)  # Supprimer le bonus collecté
 
@@ -155,7 +178,6 @@ class Gameplay(State):
     def render(self, screen):
         screen.fill((0, 0, 0))
         mouse_pos = pygame.mouse.get_pos()  # Obtenez la position de la souris
-        self.player.draw(screen, mouse_pos)  # Passez mouse_pos à la méthode draw
         # Obtenir la taille de l'écran et de l'image
         screen_width, screen_height = screen.get_size()
         tile_width, tile_height = self.background_image.get_size()
@@ -169,14 +191,13 @@ class Gameplay(State):
         for element in self.decor_elements:
             screen.blit(element["image"], element["position"])
 
-        # Dessiner les entités
-        self.player.draw(screen)
-
         # Dessiner les ennemis
         for enemy in self.enemies:
             enemy.draw(screen)
         for bonus in self.bonuses:
             bonus.draw(screen)  # Dessiner les bonus
+
+        self.player.draw(screen, mouse_pos)
 
         # Afficher le score
         score_text = self.font.render(f"Score: {self.score}", True, (255, 255, 255))
