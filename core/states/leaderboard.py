@@ -50,7 +50,7 @@ class Leaderboard(State):
                     name, score = line.strip().split(":")
                     score_data.append((name, int(score)))
                 except ValueError:
-                    print(f"Ligne mal formatée ignorée : {line.strip()}")
+                    continue
 
             # Trier les scores par ordre décroissant
             score_data.sort(key=lambda x: x[1], reverse=True)
