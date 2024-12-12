@@ -125,6 +125,11 @@ class Gameplay(State):
             # Mettre à jour les ennemis
             self.update_enemies()
 
+        if self.gameover_delay is not None:
+            self.gameover_delay -= 1
+            if self.gameover_delay <= 0:
+                self.next_state = "GAMEOVER"
+
         # Mise à jour du score
         if pygame.time.get_ticks() % 60 == 0:
             self.add_score(1)
@@ -146,15 +151,15 @@ class Gameplay(State):
 
             if self.player.rect.colliderect(enemy.rect):
                 self.player.die()
-                self.gameover_delay = pygame.time.get_ticks() + 1000
+                self.gameover_delay = 60
                 pygame.mixer.music.stop()
-                self.next_state = "GAMEOVER"
 
     def render_bonus_bars(self, screen):
         """Dessine les barres de progression des bonus en haut à droite de l'écran."""
         bar_width = 200
         bar_height = 20
         margin = 10
+        border_thickness = 2
 
         # Position des barres
         speed_bar_x = screen.get_width() - bar_width - margin
@@ -162,18 +167,42 @@ class Gameplay(State):
         fire_rate_bar_x = screen.get_width() - bar_width - margin
         fire_rate_bar_y = margin + bar_height + margin
 
-        # Durée et progression
+        # Barre de vitesse
+        # Dessiner le fond de la barre
+        pygame.draw.rect(screen, (50, 50, 50), (speed_bar_x, speed_bar_y, bar_width, bar_height))
+        # Dessiner la bordure
+        pygame.draw.rect(screen, (255, 255, 255), (speed_bar_x, speed_bar_y, bar_width, bar_height), border_thickness)
+
+        # Dessiner la progression si le bonus est actif
         if self.player.bonus_timers['speed'] > 0:
             speed_progress = (self.player.bonus_timers['speed'] / (60 * 5)) * bar_width
-            pygame.draw.rect(screen, (255, 255, 0), (speed_bar_x, speed_bar_y, speed_progress, bar_height))
-            speed_text = self.font.render("Speed", True, (0, 0, 0))
-            screen.blit(speed_text, (speed_bar_x + (bar_width - speed_text.get_width()) // 2, speed_bar_y + (bar_height - speed_text.get_height()) // 2))
+            pygame.draw.rect(screen, (255, 255, 0), (speed_bar_x + border_thickness, speed_bar_y + border_thickness,
+                                                     speed_progress - 2 * border_thickness,
+                                                     bar_height - 2 * border_thickness))
 
+        # Texte "Speed" toujours affiché
+        speed_text = self.font.render("Speed", True, (255, 255, 255))
+        screen.blit(speed_text, (speed_bar_x + (bar_width - speed_text.get_width()) // 2,
+                                 speed_bar_y + (bar_height - speed_text.get_height()) // 2))
+
+        # Barre de cadence de tir
+        # Dessiner le fond de la barre
+        pygame.draw.rect(screen, (50, 50, 50), (fire_rate_bar_x, fire_rate_bar_y, bar_width, bar_height))
+        # Dessiner la bordure
+        pygame.draw.rect(screen, (255, 255, 255), (fire_rate_bar_x, fire_rate_bar_y, bar_width, bar_height),
+                         border_thickness)
+
+        # Dessiner la progression si le bonus est actif
         if self.player.bonus_timers['fire_rate'] > 0:
             fire_rate_progress = (self.player.bonus_timers['fire_rate'] / (60 * 5)) * bar_width
-            pygame.draw.rect(screen, (128, 128, 128), (fire_rate_bar_x, fire_rate_bar_y, fire_rate_progress, bar_height))
-            fire_rate_text = self.font.render("Mini Gun", True, (255, 255, 255))
-            screen.blit(fire_rate_text, (fire_rate_bar_x + (bar_width - fire_rate_text.get_width()) // 2, fire_rate_bar_y + (bar_height - fire_rate_text.get_height()) // 2))
+            pygame.draw.rect(screen, (128, 128, 128),
+                             (fire_rate_bar_x + border_thickness, fire_rate_bar_y + border_thickness,
+                              fire_rate_progress - 2 * border_thickness, bar_height - 2 * border_thickness))
+
+        # Texte "Mini Gun" toujours affiché
+        fire_rate_text = self.font.render("Mini Gun", True, (255, 255, 255))
+        screen.blit(fire_rate_text, (fire_rate_bar_x + (bar_width - fire_rate_text.get_width()) // 2,
+                                     fire_rate_bar_y + (bar_height - fire_rate_text.get_height()) // 2))
 
     def render(self, screen):
         mouse_pos = pygame.mouse.get_pos()
