@@ -5,3 +5,5 @@ test:0
 dz:0
 trd:0
 fezdcs:0
+tg:0
+jahwin:0
