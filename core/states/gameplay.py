@@ -30,9 +30,12 @@ class Gameplay(State):
         self.enemies = []
         self.bonuses = []  # Liste des bonus
         self.spawn_timer = 0
+        self.spawn_delay = 120
         self.bonus_timer = 0
         self.player_name = player_name  # Stocke le pseudo du joueur
         self.score = 0
+        self.previous_score = 0
+        self.difficulty = 1
 
         # Police générale
         self.font = pygame.font.Font(None, 36)
@@ -120,13 +123,13 @@ class Gameplay(State):
         if not self.player.is_dead:
             # Spawner des ennemis
             self.spawn_timer += 1
-            if self.spawn_timer > 120:
+            if self.spawn_timer > self.spawn_delay:
                 self.enemies.append(Dinosaur())
                 self.spawn_timer = 0
 
             # Gérer l'apparition des bonus
             self.bonus_timer += 1
-            if self.bonus_timer > 300:
+            if self.bonus_timer > 60*5: # Toutes les 5 secondes
                 self.spawn_bonus()
                 self.bonus_timer = 0
 
@@ -298,11 +301,27 @@ class Gameplay(State):
         score_text = self.font.render(f"Score: {self.score}", True, (255, 255, 255))
         screen.blit(score_text, (10, 10))
 
-        # Calculer la difficulté en fonction du score
-        difficulty = (self.score // 50) * 1.25
-        difficulty_text = self.font.render(f"Difficulté: {difficulty}", True, (255, 255, 255))
         # Afficher la difficulté en dessous du score
+        difficulty_text = self.font.render(f"Niveau: {self.difficulty}", True, (255, 255, 255))
         screen.blit(difficulty_text, (10, 10 + score_text.get_height() + 5))
 
     def add_score(self, amount):
+        # Augmenter le score
         self.score += amount
+
+        # Vérifier si on a dépassé le prochain seuil de difficulté
+        if self.score // 50 > (self.previous_score // 50):
+            print("Augmentation de la difficulté !")
+            self.difficulty += 1
+
+            # Augmenter la vitesse des ennemis
+            for enemy in self.enemies:
+                enemy.speed += 0.1
+
+            # Réduire le délai d'apparition des ennemis
+            if self.spawn_delay > 30:
+                self.spawn_delay -= 5
+
+        # Mettre à jour le score précédent
+        self.previous_score = self.score
+
