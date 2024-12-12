@@ -13,6 +13,13 @@ screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Jurassic Car Attack")
 clock = pygame.time.Clock()
 
+# Charger l'image du curseur
+cursor_image = pygame.image.load("assets/images/player/crosshair-Photoroom.png")  # Chemin de l'image
+cursor_image = pygame.transform.scale(cursor_image, (20, 20))  # Ajuste la taille si nécessaire
+
+# Masquer le curseur par défaut
+pygame.mouse.set_visible(False)
+
 # Gestion des états
 states = {
     "MAIN_MENU": MainMenu(),
@@ -20,7 +27,7 @@ states = {
     "GAMEOVER": GameOver(),
     "SETTINGS": Settings(),
     "PROMPT_NAME": PromptName(),
-    }
+}
 current_state = states["MAIN_MENU"]
 
 # Boucle principale
@@ -58,5 +65,11 @@ while True:
             exit()
 
     current_state.render(screen)
+
+    # Dessiner le curseur personnalisé
+    mouse_x, mouse_y = pygame.mouse.get_pos()
+    screen.blit(cursor_image, (mouse_x - cursor_image.get_width() // 2, mouse_y - cursor_image.get_height() // 2))
+
     pygame.display.flip()
     clock.tick(60)
+
