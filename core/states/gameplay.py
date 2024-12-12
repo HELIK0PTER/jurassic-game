@@ -13,8 +13,8 @@ bonus_images = {
 
 class Bonus:
     def __init__(self, x, y, bonus_type):
-        self.rect = pygame.Rect(x, y, 30, 30)  # Taille du bonus
         self.type = bonus_type  # Type de bonus : 'speed', 'fire_rate'
+        self.rect = self.get_image().get_rect(topleft=(x, y))
 
     def get_image(self):
         return bonus_images.get(self.type, None)
@@ -60,24 +60,40 @@ class Gameplay(State):
             }.items()
             for name in names
         ]
+        # Générer les éléments du décor du départ
         self.decor_elements = self.generate_random_decor(grid_size=50)
 
     def spawn_bonus(self):
         if len(self.bonuses) < 3:
             x = random.randint(50, 750)
             y = random.randint(50, 550)
-            bonus_type = random.choice(['speed', 'fire_rate'])
-            self.bonuses.append(Bonus(x, y, bonus_type))
+            choice_type = ['speed', 'fire_rate'][random.randint(0, 1)]
+            self.bonuses.append(Bonus(x, y ,choice_type))
 
     def generate_random_decor(self, grid_size=50):
         decor = []
         map_width, map_height = 800, 600
         for x in range(0, map_width, grid_size):
             for y in range(0, map_height, grid_size):
-                if random.random() < 0.1:
+                if random.random() < 0.03:
                     try:
-                        obstacle = Obstacle(x, y)
-                        decor.append({"image": obstacle.image, "position": (x, y)})
+                        trying = True
+                        while trying:
+                            # Si l'obstacle veut apparaître sur un autre obstacle, on le place à côté
+                            for element in decor:
+                                if element["position"] == (x, y):
+                                    x += grid_size
+                                    y += grid_size
+                                    break
+                            # Si l'obstacle veut apparaître sur le joueur, on le met pas
+                            if self.player.rect.colliderect(pygame.Rect(x, y, grid_size, grid_size)):
+                                x = None
+                                y = None
+                            # Si les étapes précédentes sont passées, on ajoute l'obstacle
+                            if x is not None and y is not None:
+                                obstacle = Obstacle(x, y)
+                                decor.append({"image": obstacle.image, "position": (x, y)})
+                            trying = False
                     except ValueError:
                         pass
         return decor
@@ -92,9 +108,9 @@ class Gameplay(State):
 
         for event in events:
             if event.type == pygame.USEREVENT + 1:  # Réinitialiser bonus vitesse
-                self.player.reset_bonus('speed')
+                self.player.reset_speed_bonus()
             elif event.type == pygame.USEREVENT + 2:  # Réinitialiser bonus cadence
-                self.player.reset_bonus('fire_rate')
+                self.player.reset_fire_rate_bonus()
 
     def update(self):
         if not self.player.is_dead:

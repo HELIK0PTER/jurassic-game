@@ -22,16 +22,11 @@ obstacles = [
         "nom": "rocher 2",
         "image": "assets/images/map/rock/rock2.png",
         "type": "rocher"
-    },
-    {
-        "nom": "trou",
-        "image": "assets/images/map/hole.png",
-        "type": "trou"
     }
 ]
 
 # Liste des types, pour pondérer les probabilités de chaque type d'obstacle
-types = ["arbre", "arbre", "arbre", "rocher", "rocher", "trou"]
+types = ["arbre", "arbre", "arbre", "rocher", "rocher"]
 
 def choisir_obstacle():
     """
