@@ -1,12 +1,11 @@
 .idea
 .venv
 
-.gitkeep
-
 # Ignore Python cache files
 __pycache__/
 *.pyc
 *.pyo
 
 /saves/*
+!/saves/readme.md
 .config*
