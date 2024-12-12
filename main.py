@@ -6,12 +6,20 @@ from core.states.gameplay import Gameplay
 from core.states.gameover import GameOver
 from core.states.settings import Settings
 from core.states.prompt_name import PromptName
+from core.states.leaderboard import Leaderboard
 
 # Initialisation
 pygame.init()
 screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Jurassic Car Attack")
 clock = pygame.time.Clock()
+
+# Charger l'image du curseur
+cursor_image = pygame.image.load("assets/images/player/crosshair-Photoroom.png")  # Chemin de l'image
+cursor_image = pygame.transform.scale(cursor_image, (20, 20))  # Ajuste la taille si nécessaire
+
+# Masquer le curseur par défaut
+pygame.mouse.set_visible(False)
 
 # Gestion des états
 states = {
@@ -20,6 +28,7 @@ states = {
     "GAMEOVER": GameOver(),
     "SETTINGS": Settings(),
     "PROMPT_NAME": PromptName(),
+    "Leaderboard": Leaderboard(),
     }
 current_state = states["MAIN_MENU"]
 current_state.play_welcome_and_background()
@@ -46,7 +55,7 @@ while True:
             if previous_state == "MAIN_MENU":
                 previous_state = "GAMEPLAY"
         elif current_state.next_state == "GAMEOVER":
-            states["GAMEOVER"] = GameOver(states["GAMEPLAY"].score)
+            states["GAMEOVER"] = GameOver(states["GAMEPLAY"].score, current_state.player_name)
             current_state = states["GAMEOVER"]
             if previous_state == "GAMEPLAY":
                 previous_state = "GAMEOVER"
@@ -58,6 +67,9 @@ while True:
         elif current_state.next_state == "PROMPT_NAME":
             states["PROMPT_NAME"] = PromptName()
             current_state = states["PROMPT_NAME"]
+        elif current_state.next_state == "Leaderboard":
+            states["Leaderboard"] = Leaderboard()
+            current_state = states["Leaderboard"]
         else:
             current_state = states[current_state.next_state]
 
@@ -68,5 +80,11 @@ while True:
             exit()
 
     current_state.render(screen)
+
+    # Dessiner le curseur personnalisé
+    mouse_x, mouse_y = pygame.mouse.get_pos()
+    screen.blit(cursor_image, (mouse_x - cursor_image.get_width() // 2, mouse_y - cursor_image.get_height() // 2))
+
     pygame.display.flip()
     clock.tick(60)
+

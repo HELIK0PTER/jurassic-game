@@ -55,13 +55,21 @@ class Gameplay(State):
 
         # Mettre à jour les ennemis
         for enemy in self.enemies[:]:
+            # Si un dinosaure a un état "mort", afficher son explosion puis le supprimer
+            if enemy.is_dead:
+                #if enemy.explosion_finished:
+                self.enemies.remove(enemy)
+                continue  # Ne pas continuer à déplacer un dinosaure mort
+
+            # Déplacer le dinosaure vers le joueur
             enemy.move_towards_player(self.player.rect)
 
+            # Gérer les collisions avec les projectiles
             for projectile in self.player.projectiles[:]:
                 if projectile.rect.colliderect(enemy.rect):
                     self.player.projectiles.remove(projectile)
                     if enemy.take_damage(25):
-                        self.enemies.remove(enemy)
+                        pass # enemy.start_explosion()  # Démarre l'animation d'explosion
 
             # Si le joueur touche un ennemi, transition vers l'écran de game over
             if self.player.rect.colliderect(enemy.rect):
@@ -98,10 +106,12 @@ class Gameplay(State):
 
         # Dessiner les entités
         self.player.draw(screen)
+
+        # Dessiner les ennemis
         for enemy in self.enemies:
             enemy.draw(screen)
 
-        # Dessiner le score
+        # Afficher le score
         score_text = self.font.render(f"Score: {self.score}", True, (255, 255, 255))
         screen.blit(score_text, (10, 10))
 
