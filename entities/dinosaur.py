@@ -1,47 +1,53 @@
 import pygame
 import random
 
-
 class Dinosaur:
     def __init__(self, dino_type=None):
         self.dino_type = dino_type or random.choice(["DinoNormal", "DinoRapide", "DinoLent"])
         self.configure_dinosaur()
-        self.animation_frames = [pygame.transform.scale(frame, self.size) for frame in self.animation_frames]
+
+        # Initialiser les variables nécessaires pour l'animation
         self.current_frame = 0
         self.image = self.animation_frames[int(self.current_frame)]
         self.rect = self.image.get_rect()
         self.random_spawn()
         self.direction = "right"
 
-        # Initialisation pour l'explosion
-        self.explosion_frames = []  # Liste des images d'explosion
-        self.explosion_index = 0  # Index de l'image d'explosion actuelle
-        self.explosion_timer = 0  # Timer pour gérer le délai entre les frames de l'explosion
-        self.explosion_delay = 100  # Délai entre les frames d'explosion en millisecondes (100 ms)
+        # Attributs pour gérer la mort et l'explosion
+        self.is_dead = False  # Le dinosaure n'est pas mort au départ
+        self.explosion_frames = []  # Frames d'explosion
+        self.explosion_frame = 0
+        self.explosion_finished = False  # Pour savoir si l'explosion est terminée
 
-        # Charger le son d'explosion
-        self.explosion_sound = pygame.mixer.Sound("assets/sounds/Explosion.mp3")
-        self.explosion_sound.set_volume(0.7)
+        # Charger les images de l'explosion (ajoute tes propres images ici)
+        for i in range(1, 3):
+            self.explosion_frames.append(pygame.image.load(f"assets/images/Dino/exploD{i}.png"))
 
-        # Attribut pour savoir si le dinosaure est mort
-        self.is_dead = False  # Initialement, le dinosaure est vivant
+        # Charger le son de l'explosion
+        self.explosion_sound = pygame.mixer.Sound("assets/sounds/explosion.mp3")
+        self.explosion_sound.set_volume(0.7)  # Ajuste le volume à ton goût
 
     def configure_dinosaur(self):
-        # Configuration des caractéristiques en fonction du type de dinosaure
         if self.dino_type == "DinoNormal":
-            self.animation_frames = [pygame.image.load(f"assets/images/Dino/DinoNormal{i}.png") for i in range(1, 6)]
+            self.animation_frames = [
+                pygame.image.load(f"assets/images/Dino/DinoNormal{i}.png") for i in range(1, 6)
+            ]
             self.speed = 1
             self.health = 100
             self.max_health = 100
             self.size = (70, 50)
         elif self.dino_type == "DinoRapide":
-            self.animation_frames = [pygame.image.load(f"assets/images/Dino/DinoRapide{i}.png") for i in range(1, 10)]
+            self.animation_frames = [
+                pygame.image.load(f"assets/images/Dino/DinoRapide{i}.png") for i in range(1, 10)
+            ]
             self.speed = 2
             self.health = 25
             self.max_health = 25
             self.size = (50, 30)
         elif self.dino_type == "DinoLent":
-            self.animation_frames = [pygame.image.load(f"assets/images/Dino/DinoLent{i}.png") for i in range(1, 12)]
+            self.animation_frames = [
+                pygame.image.load(f"assets/images/Dino/DinoLent{i}.png") for i in range(1, 12)
+            ]
             self.speed = 0.80
             self.health = 150
             self.max_health = 150
@@ -49,31 +55,12 @@ class Dinosaur:
         else:
             raise ValueError(f"Type de dinosaure inconnu : {self.dino_type}")
 
-    def take_damage(self, amount):
-        self.health -= amount
-        if self.health <= 0 and not self.is_dead:
-            self.is_dead = True
-            self.explode()  # Appeler la fonction explode pour jouer l'explosion
-        return self.health <= 0
-
-    def explode(self):
-        # Charger les images de l'explosion
-        for i in range(1, 4):
-            self.explosion_frames.append(pygame.image.load(f"assets/images/Dino/exploD{i}.png"))
-
-        # Jouer le son d'explosion
-        self.explosion_sound.play()
-
-    def update_explosion(self):
-        # Si l'explosion n'est pas terminée, passe à l'image suivante avec un délai
-        if self.explosion_index < len(self.explosion_frames):
-            self.explosion_timer += 1
-            if self.explosion_timer >= self.explosion_delay:
-                self.explosion_timer = 0
-                self.explosion_index += 1
+        # Redimensionner les frames d'animation
+        self.animation_frames = [
+            pygame.transform.scale(frame, self.size) for frame in self.animation_frames
+        ]
 
     def random_spawn(self):
-        # Positionner le dinosaure à une position aléatoire
         side = random.choice(["left", "right", "top", "bottom"])
         if side == "left":
             self.rect.x = -self.rect.width - 10
@@ -89,7 +76,6 @@ class Dinosaur:
             self.rect.y = 600 + 10
 
     def move_towards_player(self, player_rect):
-        # Déplacer le dinosaure vers le joueur
         if self.rect.x < player_rect.x:
             self.rect.x += self.speed
             self.direction = "right"
@@ -102,51 +88,67 @@ class Dinosaur:
         elif self.rect.y > player_rect.y:
             self.rect.y -= self.speed
 
+    def take_damage(self, amount):
+        self.health -= amount
+        if self.health <= 0:
+            self.is_dead = True  # Le dinosaure est mort
+            self.start_explosion()
+        return self.is_dead
+
+    def start_explosion(self):
+        # Lance l'animation d'explosion
+        self.explosion_frame = 0
+        self.explosion_finished = False
+        self.explosion_sound.play()  # Joue le son de l'explosion
+
     def animate(self):
-        # Animation du dinosaure
-        self.current_frame += 0.2
-        if self.current_frame >= len(self.animation_frames):
-            self.current_frame = 0
-        if self.direction == "left":
-            self.image = pygame.transform.flip(self.animation_frames[int(self.current_frame)], True, False)
+        if self.is_dead:
+            # Si le dinosaure est mort, animer l'explosion
+            self.animate_explosion()
         else:
-            self.image = self.animation_frames[int(self.current_frame)]
+            self.current_frame += 0.2
+            if self.current_frame >= len(self.animation_frames):
+                self.current_frame = 0
+            if self.direction == "left":
+                self.image = pygame.transform.flip(self.animation_frames[int(self.current_frame)], True, False)
+            else:
+                self.image = self.animation_frames[int(self.current_frame)]
+
+    def animate_explosion(self):
+        # Gérer l'animation d'explosion
+        if self.explosion_frame < len(self.explosion_frames):
+            self.image = self.explosion_frames[self.explosion_frame]
+            self.explosion_frame += 1
+        else:
+            self.explosion_finished = True  # Fin de l'animation d'explosion
 
     def draw(self, screen):
-        if self.is_dead:
-            # Dessiner les images d'explosion
-            if self.explosion_index < len(self.explosion_frames):
-                screen.blit(self.explosion_frames[self.explosion_index], self.rect)
-                self.update_explosion()  # Mettre à jour l'animation de l'explosion
-            return  # Ne dessine plus le dinosaure après sa mort, juste l'explosion
-
-        self.animate()  # Met à jour l'animation avant de dessiner
+        self.animate()
         screen.blit(self.image, self.rect)
 
-        # Dessiner la barre de santé (si vivant)
-        health_bar_width = 40
-        health_bar_height = 4
-        border_thickness = 2
-        health_ratio = self.health / self.max_health
+        if not self.is_dead:
+            # Calcul du ratio de santé uniquement si le dinosaure est vivant
+            health_ratio = self.health / self.max_health
+            # Dessiner la barre de santé
+            health_bar_width = 40
+            health_bar_height = 4
+            border_thickness = 2
+            bar_x = self.rect.centerx - health_bar_width // 2
+            bar_y = self.rect.y - 15
 
-        # Position de la barre
-        bar_x = self.rect.centerx - health_bar_width // 2
-        bar_y = self.rect.y - 15
+            pygame.draw.rect(screen, (50, 50, 50), (bar_x - border_thickness, bar_y - border_thickness,
+                                                    health_bar_width + 2 * border_thickness,
+                                                    health_bar_height + 2 * border_thickness),
+                             border_radius=4)
 
-        # Dessiner l'arrière-plan et bordure de la barre
-        pygame.draw.rect(screen, (50, 50, 50), (bar_x - border_thickness, bar_y - border_thickness,
-                                                health_bar_width + 2 * border_thickness,
-                                                health_bar_height + 2 * border_thickness),
-                         border_radius=4)
+            pygame.draw.rect(screen, (255, 0, 0), (bar_x, bar_y, health_bar_width, health_bar_height), border_radius=4)
+            pygame.draw.rect(screen, (0, 255, 0),
+                             (bar_x, bar_y, int(health_bar_width * health_ratio), health_bar_height),
+                             border_radius=4)
 
-        # Dessiner la barre rouge (santé perdue)
-        pygame.draw.rect(screen, (255, 0, 0), (bar_x, bar_y, health_bar_width, health_bar_height), border_radius=4)
-
-        # Dessiner la barre verte (santé restante)
-        pygame.draw.rect(screen, (0, 255, 0), (bar_x, bar_y, int(health_bar_width * health_ratio), health_bar_height),
-                         border_radius=4)
-
-        if health_ratio < 0.3:
-            pygame.draw.rect(screen, (255, 50, 50), (bar_x - 2, bar_y - 2, health_bar_width + 4, health_bar_height + 4),
-                             width=1, border_radius=6)
+            # Ajouter un effet lumineux si la santé est faible
+            if health_ratio < 0.3:
+                pygame.draw.rect(screen, (255, 50, 50),
+                                 (bar_x - 2, bar_y - 2, health_bar_width + 4, health_bar_height + 4),
+                                 width=1, border_radius=6)
 

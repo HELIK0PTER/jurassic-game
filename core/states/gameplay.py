@@ -26,59 +26,56 @@ class Gameplay(State):
         self.shoot_sound = pygame.mixer.Sound("assets/sounds/pistolet.ogg")
         self.shoot_sound.set_volume(0.7)  # Volume normal pour les sons de tir (entre 0 et 1)
 
+        # Chronomètre pour gérer le délai avant Game Over
+        self.gameover_delay = None  # Chronomètre avant l'affichage de Game Over
+
     def handle_events(self, events):
-        keys = pygame.key.get_pressed()
-        self.player.move(keys)
-        mouse_pos = pygame.mouse.get_pos()
-        if keys[pygame.K_SPACE]:
-            self.player.shoot(mouse_pos, self.shoot_sound)
+        if not self.player.is_dead:
+            keys = pygame.key.get_pressed()
+            self.player.move(keys)
+            mouse_pos = pygame.mouse.get_pos()
+            if keys[pygame.K_SPACE]:
+                self.player.shoot(mouse_pos, self.shoot_sound)
 
     def update(self):
-        # Spawner des ennemis
-        self.spawn_timer += 1
-        if self.spawn_timer > 120:
-            self.enemies.append(Dinosaur())
-            self.spawn_timer = 0
+        if not self.player.is_dead:
+            # Spawner des ennemis et gestion des projectiles
+            self.spawn_timer += 1
+            if self.spawn_timer > 120:
+                self.enemies.append(Dinosaur())
+                self.spawn_timer = 0
 
-        # Mettre à jour les projectiles
-        self.player.update_projectiles()
+            # Mettre à jour les projectiles
+            self.player.update_projectiles()
 
-        # Mettre à jour les ennemis
-        for enemy in self.enemies[:]:
-            # Si un dinosaure a un état "mort", afficher son explosion puis le supprimer
-            if enemy.is_dead:
-                #if enemy.explosion_finished:
-                self.enemies.remove(enemy)
-                continue  # Ne pas continuer à déplacer un dinosaure mort
+            # Mettre à jour les ennemis
+            for enemy in self.enemies[:]:
+                if enemy.is_dead:
+                    self.enemies.remove(enemy)
+                    continue
 
-            # Déplacer le dinosaure vers le joueur
-            enemy.move_towards_player(self.player.rect)
+                # Déplacer le dinosaure vers le joueur
+                enemy.move_towards_player(self.player.rect)
 
-            # Gérer les collisions avec les projectiles
-            for projectile in self.player.projectiles[:]:
-                if projectile.rect.colliderect(enemy.rect):
-                    self.player.projectiles.remove(projectile)
-                    if enemy.take_damage(25):
-                        pass # enemy.start_explosion()  # Démarre l'animation d'explosion
+                # Gérer les collisions avec les projectiles
+                for projectile in self.player.projectiles[:]:
+                    if projectile.rect.colliderect(enemy.rect):
+                        self.player.projectiles.remove(projectile)
+                        if enemy.take_damage(25):
+                            pass
 
-            # Si le joueur touche un ennemi, transition vers l'écran de game over
-            if self.player.rect.colliderect(enemy.rect):
-                # Arrêter complètement la musique de fond
-                pygame.mixer.music.stop()
-                self.enemies.clear()  # Clear les ennemis
-                self.player.rect.x = 375  # Reset la position du joueur
-                self.player.rect.y = 275
-                # Passer à l'état GameOver avec le score et le pseudo
-                self.next_state = "GAMEOVER"
-                self.next_state_data = {
-                    "score": self.score,
-                    "player_name": self.player_name  # Transmission du pseudo
-                }
-                return  # Arrêter le reste de l'exécution de cette frame
-
-        # Mettre à jour le score tous les 60 ticks
-        if pygame.time.get_ticks() % 60 == 0:
-            self.add_score(1)
+                # Si le joueur touche un ennemi
+                if self.player.rect.colliderect(enemy.rect):
+                    self.player.die()  # Le joueur meurt
+                    self.gameover_delay = pygame.time.get_ticks() + 1000  # Attendre 3 secondes avant Game Over
+                    pygame.mixer.music.stop()  # Stopper la musique de fond
+        # Si le joueur est mort et que le délai est écoulé, aller à l'écran Game Over
+        if self.player.is_dead and self.gameover_delay and pygame.time.get_ticks() >= self.gameover_delay:
+            self.next_state = "GAMEOVER"
+            self.next_state_data = {
+                "score": self.score,
+                "player_name": self.player_name
+            }
 
     def render(self, screen):
         screen.fill((0, 0, 0))
@@ -91,16 +88,3 @@ class Gameplay(State):
         # Afficher le score
         score_text = self.font.render(f"Score: {self.score}", True, (255, 255, 255))
         screen.blit(score_text, (10, 10))
-
-    def save_score(self):
-        """Sauvegarde le score actuel dans le fichier `saves/saved_scores.txt`."""
-        try:
-            with open("saves/saved_scores.txt", "a") as file:
-                file.write(f"{self.player_name}:{self.score}\n")
-            print(f"Score de {self.player_name} ({self.score}) sauvegardé avec succès.")
-        except Exception as e:
-            print(f"Erreur lors de la sauvegarde du score : {e}")
-
-    def add_score(self, amount):
-        self.score += amount
-
