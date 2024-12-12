@@ -1,5 +1,4 @@
 import pygame
-from Scripts.activate_this import prev_length
 
 from core.events import handle_quit
 from core.states.main_menu import MainMenu
