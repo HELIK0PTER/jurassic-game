@@ -3,6 +3,7 @@ import random
 from core.states.state import State
 from entities.player import Player
 from entities.dinosaur import Dinosaur
+from entities.obstacle import Obstacle
 
 class Gameplay(State):
     def __init__(self, player_name=""):
@@ -29,12 +30,43 @@ class Gameplay(State):
         # Charger l'image de fond
         self.background_image = pygame.image.load("assets/images/map/map_background.png")
 
-        # Charger les images des éléments fixes (ex. arbres, rochers)
-        self.decor_elements = [
-            {"image": pygame.image.load("assets/images/map/trees/tree1.png"), "position": (100, 150)},
-            {"image": pygame.image.load("assets/images/map/rock/rock1.png"), "position": (300, 400)},
-            {"image": pygame.image.load("assets/images/map/hole.png"), "position": (500, 200)}
+        # Charger les images des éléments fixes
+        self.decor_images = [
+            pygame.image.load("assets/images/map/trees/tree1.png"),
+            pygame.image.load("assets/images/map/trees/tree2.png"),
+            pygame.image.load("assets/images/map/trees/tree3.png"),
+            pygame.image.load("assets/images/map/trees/tree4.png"),
+            pygame.image.load("assets/images/map/trees/tree5.png"),
+            pygame.image.load("assets/images/map/rock/rock1.png"),
+            pygame.image.load("assets/images/map/rock/rock2.png"),
+            pygame.image.load("assets/images/map/rock/rock3.png"),
+            pygame.image.load("assets/images/map/hole.png")
         ]
+
+        # Générer les éléments fixes aléatoires sur la carte avec une probabilité de 1/10 par case
+        self.decor_elements = self.generate_random_decor(grid_size=50)  # Taille des cellules de la grille
+
+    def generate_random_decor(self, grid_size=50):
+        """
+        Génère des obstacles sur une grille avec une probabilité de 1/10 par case.
+        :param grid_size: Taille des cellules de la grille (en pixels).
+        :return: Liste de dictionnaires contenant 'image' et 'position'.
+        """
+        decor = []
+        map_width, map_height = 800, 600  # Dimensions de la carte
+        for x in range(0, map_width, grid_size):
+            for y in range(0, map_height, grid_size):
+                if random.random() < 0.1:  # Probabilité de 1/10
+                    try:
+                        # Créer un obstacle à la position actuelle
+                        obstacle = Obstacle(x, y)
+                        decor.append({
+                            "image": obstacle.image,
+                            "position": (x, y)
+                        })
+                    except ValueError:
+                        pass  # Ignorer si aucun obstacle valide n'est disponible
+        return decor
 
     def handle_events(self, events):
         keys = pygame.key.get_pressed()
@@ -57,7 +89,6 @@ class Gameplay(State):
         for enemy in self.enemies[:]:
             # Si un dinosaure a un état "mort", afficher son explosion puis le supprimer
             if enemy.is_dead:
-                #if enemy.explosion_finished:
                 self.enemies.remove(enemy)
                 continue  # Ne pas continuer à déplacer un dinosaure mort
 
@@ -69,7 +100,7 @@ class Gameplay(State):
                 if projectile.rect.colliderect(enemy.rect):
                     self.player.projectiles.remove(projectile)
                     if enemy.take_damage(25):
-                        pass # enemy.start_explosion()  # Démarre l'animation d'explosion
+                        pass  # Placeholder pour l'animation d'explosion
 
             # Si le joueur touche un ennemi, transition vers l'écran de game over
             if self.player.rect.colliderect(enemy.rect):
