@@ -87,7 +87,7 @@ class Gameplay(State):
             keys = pygame.key.get_pressed()
             self.player.move(keys)
             mouse_pos = pygame.mouse.get_pos()
-            if keys[pygame.K_SPACE]:
+            if keys[pygame.K_SPACE] or pygame.mouse.get_pressed()[0]:
                 self.player.shoot(mouse_pos, self.shoot_sound)
 
         for event in events:
