@@ -20,7 +20,7 @@ jurassic_logo = pygame.image.load("assets/images/menu_logo.png")
 jurassic_logo = pygame.transform.scale(jurassic_logo, (250, 200))  # Taille ajustée du logo
 
 # Fichier de configuration pour les paramètres
-SETTINGS_FILE = "volume_config.txt"
+SETTINGS_FILE = ".config.txt"
 
 
 class Settings(State):
