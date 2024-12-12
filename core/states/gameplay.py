@@ -33,7 +33,11 @@ class Gameplay(State):
         self.bonus_timer = 0
         self.player_name = player_name  # Stocke le pseudo du joueur
         self.score = 0
+
+        # Police générale
         self.font = pygame.font.Font(None, 36)
+        # Police spécifique pour les barres de bonus
+        self.font_bonus = pygame.font.Font("assets/fonts/SpecialElite-Regular.ttf", 18)
 
         # Initialisation audio
         pygame.mixer.init()
@@ -171,54 +175,98 @@ class Gameplay(State):
                 pygame.mixer.music.stop()
 
     def render_bonus_bars(self, screen):
-        """Dessine les barres de progression des bonus en haut à droite de l'écran."""
         bar_width = 200
         bar_height = 20
         margin = 10
         border_thickness = 2
+        border_radius = 10  # Rayon pour les coins arrondis
 
-        # Position des barres
+        # Positions des barres
         speed_bar_x = screen.get_width() - bar_width - margin
         speed_bar_y = margin
         fire_rate_bar_x = screen.get_width() - bar_width - margin
         fire_rate_bar_y = margin + bar_height + margin
 
-        # Barre de vitesse
-        # Dessiner le fond de la barre
-        pygame.draw.rect(screen, (50, 50, 50), (speed_bar_x, speed_bar_y, bar_width, bar_height))
-        # Dessiner la bordure
-        pygame.draw.rect(screen, (255, 255, 255), (speed_bar_x, speed_bar_y, bar_width, bar_height), border_thickness)
+        # Couleurs
+        border_color = (0, 0, 0)
+        text_color = (0, 0, 0)
 
-        # Dessiner la progression si le bonus est actif
-        if self.player.bonus_timers['speed'] > 0:
-            speed_progress = (self.player.bonus_timers['speed'] / (60 * 5)) * bar_width
-            pygame.draw.rect(screen, (255, 255, 0), (speed_bar_x + border_thickness, speed_bar_y + border_thickness,
-                                                     speed_progress - 2 * border_thickness,
-                                                     bar_height - 2 * border_thickness))
+        # Dégradés (du côté gauche vers le côté droit)
+        # Speed : bleu -> jaune
+        speed_start_color = (0, 0, 255)
+        speed_end_color = (255, 255, 0)
 
-        # Texte "Speed" toujours affiché
-        speed_text = self.font.render("Speed", True, (255, 255, 255))
-        screen.blit(speed_text, (speed_bar_x + (bar_width - speed_text.get_width()) // 2,
-                                 speed_bar_y + (bar_height - speed_text.get_height()) // 2))
+        # Fire Rate : rouge -> orange
+        fire_start_color = (255, 0, 0)
+        fire_end_color = (255, 165, 0)
 
-        # Barre de cadence de tir
-        # Dessiner le fond de la barre
-        pygame.draw.rect(screen, (50, 50, 50), (fire_rate_bar_x, fire_rate_bar_y, bar_width, bar_height))
-        # Dessiner la bordure
-        pygame.draw.rect(screen, (255, 255, 255), (fire_rate_bar_x, fire_rate_bar_y, bar_width, bar_height),
-                         border_thickness)
+        # Durée totale du bonus (ici 60 * 5 = 300 ticks)
+        total_time = 60 * 5
 
-        # Dessiner la progression si le bonus est actif
-        if self.player.bonus_timers['fire_rate'] > 0:
-            fire_rate_progress = (self.player.bonus_timers['fire_rate'] / (60 * 5)) * bar_width
-            pygame.draw.rect(screen, (128, 128, 128),
-                             (fire_rate_bar_x + border_thickness, fire_rate_bar_y + border_thickness,
-                              fire_rate_progress - 2 * border_thickness, bar_height - 2 * border_thickness))
+        def create_gradient_surface(width, height, start_color, end_color):
+            """Crée une surface avec un dégradé horizontal de start_color à end_color."""
+            gradient_surface = pygame.Surface((width, height), pygame.SRCALPHA)
+            sr, sg, sb = start_color
+            er, eg, eb = end_color
 
-        # Texte "Mini Gun" toujours affiché
-        fire_rate_text = self.font.render("Mini Gun", True, (255, 255, 255))
-        screen.blit(fire_rate_text, (fire_rate_bar_x + (bar_width - fire_rate_text.get_width()) // 2,
-                                     fire_rate_bar_y + (bar_height - fire_rate_text.get_height()) // 2))
+            for x in range(width):
+                # Calculer la proportion
+                ratio = x / (width - 1) if width > 1 else 0
+                # Interpolation linéaire entre les deux couleurs
+                r = sr + (er - sr) * ratio
+                g = sg + (eg - sg) * ratio
+                b = sb + (eb - sb) * ratio
+                pygame.draw.line(gradient_surface, (int(r), int(g), int(b)), (x, 0), (x, height))
+            return gradient_surface
+
+        def draw_bar(x, y, active_time, start_color, end_color, title):
+            # Créer une surface temporaire pour le fond
+            temp_surface = pygame.Surface((bar_width, bar_height), pygame.SRCALPHA)
+            # Dessiner un rectangle arrondi semi-transparent sur cette surface
+            pygame.draw.rect(temp_surface, (0, 0, 0, 128), (0, 0, bar_width, bar_height), border_radius=border_radius)
+            # Blitter cette surface arrondie sur l'écran
+            screen.blit(temp_surface, (x, y))
+
+            # Dessiner la bordure arrondie par-dessus
+            rect_bar = pygame.Rect(x, y, bar_width, bar_height)
+            pygame.draw.rect(screen, border_color, rect_bar, border_thickness, border_radius=border_radius)
+
+            # Calcul de la progression
+            if active_time > 0:
+                progress = (active_time / total_time) * bar_width
+                inner_width = max(int(progress - 2 * border_thickness), 0)
+                inner_height = max(bar_height - 2 * border_thickness, 0)
+
+                if inner_width > 0 and inner_height > 0:
+                    # Créer la surface de dégradé pour la progression
+                    gradient_surf = create_gradient_surface(inner_width, inner_height, start_color, end_color)
+
+                    # Dessiner le dégradé arrondi
+                    progress_rect = pygame.Rect(x + border_thickness, y + border_thickness, inner_width, inner_height)
+                    # Pour arrondir les coins du dégradé, on peut utiliser un mask ou simplement laisser tel quel.
+                    # Ici, on le laisse tel quel, mais le rectangle est à l'intérieur de la barre arrondie, donc ça devrait aller.
+                    screen.blit(gradient_surf, progress_rect)
+
+                    # Surbrillance (optionnelle)
+                    highlight_width = inner_width
+                    highlight_height = inner_height // 2
+                    if highlight_width > 0 and highlight_height > 0:
+                        highlight_surface = pygame.Surface((highlight_width, highlight_height), pygame.SRCALPHA)
+                        highlight_surface.fill((255, 255, 255, 100))
+                        screen.blit(highlight_surface, (x + border_thickness, y + border_thickness))
+
+            # Affichage du titre avec la police bonus
+            text_surf = self.font_bonus.render(title, True, text_color)
+            screen.blit(text_surf, (x + (bar_width - text_surf.get_width()) // 2,
+                                    y + (bar_height - text_surf.get_height()) // 2))
+
+        # Dessiner la barre de Speed (dégradé bleu->jaune)
+        draw_bar(speed_bar_x, speed_bar_y, self.player.bonus_timers['speed'], speed_start_color, speed_end_color,
+                 "Speed")
+
+        # Dessiner la barre de Mini Gun (dégradé rouge->orange)
+        draw_bar(fire_rate_bar_x, fire_rate_bar_y, self.player.bonus_timers['fire_rate'], fire_start_color,
+                 fire_end_color, "Mini Gun")
 
     def render(self, screen):
         mouse_pos = pygame.mouse.get_pos()
@@ -249,6 +297,12 @@ class Gameplay(State):
         # Afficher le score
         score_text = self.font.render(f"Score: {self.score}", True, (255, 255, 255))
         screen.blit(score_text, (10, 10))
+
+        # Calculer la difficulté en fonction du score
+        difficulty = (self.score // 50) * 1.25
+        difficulty_text = self.font.render(f"Difficulté: {difficulty}", True, (255, 255, 255))
+        # Afficher la difficulté en dessous du score
+        screen.blit(difficulty_text, (10, 10 + score_text.get_height() + 5))
 
     def add_score(self, amount):
         self.score += amount
