@@ -157,10 +157,14 @@ class Player:
         """
         Met à jour les projectiles et les feux.
         """
-        for projectile in self.projectiles[:]:
+        for projectile in self.projectiles[:]:  # Itérer sur une copie pour éviter les erreurs de modification
             projectile.move()
-            if (projectile.rect.bottom < 0 or projectile.rect.top > 600 or
-                projectile.rect.left > 800 or projectile.rect.right < 0):
+
+            # Décrémenter la durée de vie du projectile
+            projectile.life_duration -= 1
+
+            # Supprimer le projectile si sa durée de vie est écoulée
+            if projectile.life_duration <= 0:
                 self.projectiles.remove(projectile)
 
         if self.shoot_cooldown > 0:
@@ -169,10 +173,7 @@ class Player:
         # Mettre à jour les feux
         self.update_fires()
 
-    def draw_cursor(self, screen, mouse_pos):
-        """
-        Dessine un curseur en forme de triangle rouge effectuant une rotation autour du joueur
-        tout en pointant vers la souris.
+    def draw(self, screen):
         """
         # Calcul de l'angle vers la souris
         dx, dy = mouse_pos[0] - self.rect.centerx, mouse_pos[1] - self.rect.centery
@@ -206,6 +207,7 @@ class Player:
             (base_left_x, base_left_y),  # Base gauche
             (base_right_x, base_right_y)  # Base droite
         ])
+        """
 
     def draw(self, screen, mouse_pos):
         """

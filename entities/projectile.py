@@ -68,6 +68,9 @@ class Projectile:
         self.dx = math.cos(angle) * self.speed
         self.dy = math.sin(angle) * self.speed
 
+        # Gérer la durée de vie d'un projectile
+        self.life_duration = 60 * 3  # Durée de vie en frames (1 seconde = 60 frames)
+
     def move(self):
         # Déplacer le projectile en fonction de sa direction
         self.rect.x += self.dx
