@@ -51,7 +51,7 @@ while True:
             states["PROMPT_NAME"] = PromptName()
             current_state = states["PROMPT_NAME"]
         elif current_state.next_state == "Leaderboard":
-            states["Leaderboard"] = Settings()
+            states["Leaderboard"] = Leaderboard()
             current_state = states["Leaderboard"]
         else:
             current_state = states[current_state.next_state]
