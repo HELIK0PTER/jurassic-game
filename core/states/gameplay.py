@@ -2,10 +2,10 @@ import pygame
 import random
 from core.states.state import State
 from entities.obstacle import Obstacle
-from entities.player import Player, player_sprite_paths
+from entities.player import Player
 from entities.dinosaur import Dinosaur
 
-# images des bonus
+# Images des bonus
 bonus_images = {
     'speed': pygame.image.load("assets/images/player-bonus1/player_bonus1.png"),
     'fire_rate': pygame.image.load("assets/images/player-bonus2/player_bonus2.png")
@@ -13,92 +13,71 @@ bonus_images = {
 
 class Bonus:
     def __init__(self, x, y, bonus_type):
-        self.rect = pygame.Rect(x, y, 30, 30)  # Taille du bonus
-        self.type = bonus_type  # Type de bonus : 'speed', 'fire_rate'
+        self.rect = pygame.Rect(x, y, 30, 30)
+        self.type = bonus_type
 
     def get_image(self):
-        # Définir une couleur différente pour chaque type de bonus
-        if self.type == 'speed':
-            return bonus_images['speed']
-        elif self.type == 'fire_rate':
-            return bonus_images['fire_rate']
+        return bonus_images.get(self.type, None)
 
     def draw(self, screen):
         screen.blit(self.get_image(), self.rect)
+
 
 class Gameplay(State):
     def __init__(self, player_name=""):
         super().__init__()
         self.player = Player(375, 275)
         self.enemies = []
-        self.bonuses = []  # Liste des bonus
+        self.bonuses = []
         self.spawn_timer = 0
-        self.bonus_timer = 0  # Timer pour gérer l'apparition des bonus
-        self.player_name = player_name  # Stocke le pseudo du joueur
+        self.bonus_timer = 0
+        self.player_name = player_name
         self.score = 0
         self.font = pygame.font.Font(None, 36)
 
         # Initialisation audio
         pygame.mixer.init()
-
-        # Charger la musique de fond
         pygame.mixer.music.load("assets/sounds/background_song.mp3")
-        pygame.mixer.music.play(-1)  # Jouer en boucle
-        self.background_music = pygame.mixer.music  # Référence à la musique de fond
-
-        # Charger les sons
+        pygame.mixer.music.play(-1)
         self.shoot_sound = pygame.mixer.Sound("assets/sounds/pistolet.ogg")
-        self.shoot_sound.set_volume(0.7)  # Volume normal pour les sons de tir (entre 0 et 1)
+        self.shoot_sound.set_volume(0.7)
 
         # Chronomètre pour gérer le délai avant Game Over
-        self.gameover_delay = None  # Chronomètre avant l'affichage de Game Over
+        self.gameover_delay = None
 
         # Charger l'image de fond
         self.background_image = pygame.image.load("assets/images/map/map_background.png")
 
         # Charger les images des éléments fixes
         self.decor_images = [
-            pygame.image.load("assets/images/map/trees/tree1.png"),
-            pygame.image.load("assets/images/map/trees/tree2.png"),
-            pygame.image.load("assets/images/map/trees/tree3.png"),
-            pygame.image.load("assets/images/map/trees/tree4.png"),
-            pygame.image.load("assets/images/map/trees/tree5.png"),
-            pygame.image.load("assets/images/map/rock/rock1.png"),
-            pygame.image.load("assets/images/map/rock/rock2.png"),
-            pygame.image.load("assets/images/map/rock/rock3.png"),
-            pygame.image.load("assets/images/map/hole.png")
+            pygame.image.load(f"assets/images/map/{category}/{name}.png")
+            for category, names in {
+                "trees": ["tree1", "tree2", "tree3", "tree4", "tree5"],
+                "rock": ["rock1", "rock2", "rock3"],
+                "": ["hole"]
+            }.items()
+            for name in names
         ]
-
-        # Générer les éléments fixes aléatoires sur la carte avec une probabilité de 1/10 par case
-        self.decor_elements = self.generate_random_decor(grid_size=50)  # Taille des cellules de la grille
+        self.decor_elements = self.generate_random_decor(grid_size=50)
 
     def spawn_bonus(self):
-        if len(self.bonuses) < 3:  # Limiter le nombre de bonus actifs
-            x = random.randint(50, 750)  # Position aléatoire
+        if len(self.bonuses) < 3:
+            x = random.randint(50, 750)
             y = random.randint(50, 550)
             bonus_type = random.choice(['speed', 'fire_rate'])
             self.bonuses.append(Bonus(x, y, bonus_type))
 
     def generate_random_decor(self, grid_size=50):
-        """
-        Génère des obstacles sur une grille avec une probabilité de 1/10 par case.
-        :param grid_size: Taille des cellules de la grille (en pixels).
-        :return: Liste de dictionnaires contenant 'image' et 'position'.
-        """
         decor = []
-        map_width, map_height = 800, 600  # Dimensions de la carte
+        map_width, map_height = 800, 600
         for x in range(0, map_width, grid_size):
             for y in range(0, map_height, grid_size):
-                if random.random() < 0.1:  # Probabilité de 1/10
+                if random.random() < 0.1:
                     try:
-                        # Créer un obstacle à la position actuelle
                         obstacle = Obstacle(x, y)
-                        decor.append({
-                            "image": obstacle.image,
-                            "position": (x, y)
-                        })
+                        decor.append({"image": obstacle.image, "position": (x, y)})
                     except ValueError:
-                        pass  # Ignorer si aucun obstacle valide n'est disponible
+                        pass
         return decor
 
     def handle_events(self, events):
@@ -110,77 +89,74 @@ class Gameplay(State):
                 self.player.shoot(mouse_pos, self.shoot_sound)
 
         for event in events:
-            if event.type == pygame.USEREVENT + 1:  # Réinitialiser la vitesse
-                self.player.speed = 5
-            elif event.type == pygame.USEREVENT + 2:  # Réinitialiser la cadence de tir
-                self.player.default_cooldown = 30  # Rétablir la cadence de tir normale
+            if event.type == pygame.USEREVENT + 1:
+                self.player.reset_bonus()
+            elif event.type == pygame.USEREVENT + 2:
+                self.player.reset_bonus()
 
     def update(self):
         if not self.player.is_dead:
-            # Spawner des ennemis et gestion des projectiles
+            # Spawner des ennemis
             self.spawn_timer += 1
             if self.spawn_timer > 120:
                 self.enemies.append(Dinosaur())
                 self.spawn_timer = 0
+
             # Gérer l'apparition des bonus
             self.bonus_timer += 1
-            if self.bonus_timer > 300:  # Tous les 5 secondes (60 FPS)
+            if self.bonus_timer > 300:
                 self.spawn_bonus()
                 self.bonus_timer = 0
-                # Mettre à jour les projectiles
-                self.player.update_projectiles()
 
-        # Vérifier la collecte des bonus
-        for bonus in self.bonuses[:]:
-            if self.player.rect.colliderect(bonus.rect):
-                if bonus.type == 'speed':
-                    self.player.speed += 2  # Augmenter la vitesse
-                    pygame.time.set_timer(pygame.USEREVENT + 1, 4000)  # Rétablir la vitesse après 5 secondes
-                elif bonus.type == 'fire_rate':
-                    self.player.default_cooldown = max(10, self.player.default_cooldown // 5)  # Augmenter la cadence
-                    print(self.player.default_cooldown)
-                    pygame.time.set_timer(pygame.USEREVENT + 2, 5000)  # Réinitialiser après 5 secondes
-                self.bonuses.remove(bonus)  # Supprimer le bonus collecté
+            # Mettre à jour les projectiles
+            self.player.update_projectiles()
 
+            # Vérifier la collecte des bonus
+            for bonus in self.bonuses[:]:
+                if self.player.rect.colliderect(bonus.rect):
+                    self.player.apply_bonus(bonus.type)
+                    self.bonuses.remove(bonus)
 
+            # Mettre à jour les bonus actifs
+            self.player.update_bonus()
 
             # Mettre à jour les ennemis
-            for enemy in self.enemies[:]:
-                if enemy.is_dead:
-                    self.enemies.remove(enemy)
-                    continue
+            self.update_enemies()
 
-                # Déplacer le dinosaure vers le joueur
-                enemy.move_towards_player(self.player.rect)
+    def apply_bonus_effect(self, bonus):
+        if bonus.type == 'speed':
+            self.player.apply_bonus('speed')
+            pygame.time.set_timer(pygame.USEREVENT + 1, 4000)
+        elif bonus.type == 'fire_rate':
+            self.player.apply_bonus('fire_rate')
+            pygame.time.set_timer(pygame.USEREVENT + 2, 5000)
 
-            # Gérer les collisions avec les projectiles
+    def update_enemies(self):
+        for enemy in self.enemies[:]:
+            if enemy.is_dead:
+                self.enemies.remove(enemy)
+                self.add_score(10)
+                continue
+            enemy.move_towards_player(self.player.rect)
+
             for projectile in self.player.projectiles[:]:
                 if projectile.rect.colliderect(enemy.rect):
                     self.player.projectiles.remove(projectile)
                     if enemy.take_damage(25):
-                        pass  # Placeholder pour l'animation d'explosion
+                        pass  # Placeholder pour une animation ou effet
 
-                # Si le joueur touche un ennemi
-                if self.player.rect.colliderect(enemy.rect):
-                    self.player.die()  # Le joueur meurt
-                    self.gameover_delay = pygame.time.get_ticks() + 1000  # Attendre 3 secondes avant Game Over
-                    pygame.mixer.music.stop()  # Stopper la musique de fond
-        # Si le joueur est mort et que le délai est écoulé, aller à l'écran Game Over
-        if self.player.is_dead and self.gameover_delay and pygame.time.get_ticks() >= self.gameover_delay:
-            self.next_state = "GAMEOVER"
-            self.next_state_data = {
-                "score": self.score,
-                "player_name": self.player_name
-            }
+            if self.player.rect.colliderect(enemy.rect):
+                self.player.die()
+                self.gameover_delay = pygame.time.get_ticks() + 1000
+                pygame.mixer.music.stop()
 
     def render(self, screen):
+        mouse_pos = pygame.mouse.get_pos()
         screen.fill((0, 0, 0))
-        mouse_pos = pygame.mouse.get_pos()  # Obtenez la position de la souris
-        # Obtenir la taille de l'écran et de l'image
+
+        # Dessiner l'arrière-plan
         screen_width, screen_height = screen.get_size()
         tile_width, tile_height = self.background_image.get_size()
-
-        # Dessiner le fond de manière répétitive
         for x in range(0, screen_width, tile_width):
             for y in range(0, screen_height, tile_height):
                 screen.blit(self.background_image, (x, y))
@@ -189,12 +165,11 @@ class Gameplay(State):
         for element in self.decor_elements:
             screen.blit(element["image"], element["position"])
 
-        # Dessiner les ennemis
+        # Dessiner les ennemis, bonus et joueur
         for enemy in self.enemies:
             enemy.draw(screen)
         for bonus in self.bonuses:
-            bonus.draw(screen)  # Dessiner les bonus
-
+            bonus.draw(screen)
         self.player.draw(screen, mouse_pos)
 
         # Afficher le score
@@ -202,7 +177,6 @@ class Gameplay(State):
         screen.blit(score_text, (10, 10))
 
     def save_score(self):
-        """Sauvegarde le score actuel dans le fichier `saves/saved_scores.txt`."""
         try:
             with open("saves/saved_scores.txt", "a") as file:
                 file.write(f"{self.player_name}:{self.score}\n")
