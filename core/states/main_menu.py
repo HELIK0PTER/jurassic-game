@@ -86,7 +86,8 @@ class MainMenu(State):
                         button.active = True  # Activer l'animation
                         self.current_button = button
             elif event.type == pygame.MOUSEBUTTONUP:  # Réinitialiser après le clic
-                self.current_button.active = False
+                if self.current_button is not None:
+                    self.current_button.active = False
                 for button in self.buttons:
                     if button.rect.collidepoint(event.pos):
                         self.next_state = button.get_label()
