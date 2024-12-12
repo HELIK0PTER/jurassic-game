@@ -116,10 +116,14 @@ class Player:
         """
         Met à jour les projectiles et les feux.
         """
-        for projectile in self.projectiles[:]:
+        for projectile in self.projectiles[:]:  # Itérer sur une copie pour éviter les erreurs de modification
             projectile.move()
-            if (projectile.rect.bottom < 0 or projectile.rect.top > 600 or
-                projectile.rect.left > 800 or projectile.rect.right < 0):
+
+            # Décrémenter la durée de vie du projectile
+            projectile.life_duration -= 1
+
+            # Supprimer le projectile si sa durée de vie est écoulée
+            if projectile.life_duration <= 0:
                 self.projectiles.remove(projectile)
 
         if self.shoot_cooldown > 0:
@@ -127,6 +131,8 @@ class Player:
 
         # Mettre à jour les feux
         self.update_fires()
+
+
 
     def draw(self, screen):
         """
