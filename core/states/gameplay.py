@@ -143,30 +143,14 @@ class Gameplay(State):
             elif direction == "right":
                 bonus.rect.x -= speed
 
-
     def handle_events(self, events):
         if not self.player.is_dead:
             keys = pygame.key.get_pressed()
             mouse_pos = pygame.mouse.get_pos()
             if keys[pygame.K_SPACE] or pygame.mouse.get_pressed()[0]:
                 self.player.shoot(mouse_pos, self.shoot_sound)
-                
-            
+
             # Gérer le déplacement de la caméra
-            """
-            La caméra ne bouge pas dans que le joueur n'est pas à MARGE pixels de la bordure de l'écran.
-            Quand le joueur atteint cette distance, on déplace la caméra de la même manière que le joueur.
-            (Ex : si le joueur va à droite, la caméra reste fixe jusqu'à ce que le joueur atteigne MARGE pixels de la droite
-            de l'écran, puis la caméra se déplace à droite jusqu'à ce que le joueur veuille aller à gauche)
-            ATTENTION IL FAUT SMOOTHER LE DÉPLACEMENT DE LA CAMÉRA QUAND LE JOUEUR EST À LA BORDURE DE L'ÉCRAN :
-            - si le jouer est a droite, la caméra se déplace à droite et le joueur reste fixe mais doit pouvoir bouger verticalement tout de même
-            - si le joueur est a droite et se déplace verticalement, la caméra doit se déplacer verticalement aussi et l'animation du sprite du joueur doit être adaptée
-            
-            
-            fonction move du joueur : self.player.move(keys)
-            variables utiles : window_width, window_height, map_coords, grid_size, player.speed
-            """
-            # Gestion du déplacement avec la caméra
             marge = 300
             borders = []
             map_borders = []
@@ -203,7 +187,7 @@ class Gameplay(State):
                 self.move_bonus(self.player.speed, "up")
                 self.map_coords = (self.map_coords[0], self.map_coords[1] + self.player.speed,
                                    self.map_coords[2], self.map_coords[3] + self.player.speed)
-            
+
             # Vérification si le joueur est à la bordure de la carte (sans compter la marge)
             if self.player.rect.right == window_width:
                 map_borders.append("right")
@@ -213,10 +197,9 @@ class Gameplay(State):
                 map_borders.append("down")
             if self.player.rect.top == -window_height:
                 map_borders.append("up")
-                
 
-            # Déplacer le joueur avec la liste des bordures
-            self.player.move(keys, borders, map_borders)
+            # Déplacer le joueur avec la liste des bordures et les coordonnées de la carte
+            self.player.move(keys, borders, self.map_coords)
             borders.clear()
 
 

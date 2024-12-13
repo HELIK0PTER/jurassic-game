@@ -84,9 +84,7 @@ class Player:
             for bonus, sprite_paths in player_sprite_paths.items()
         }
 
-    import math
-
-    def move(self, keys, borders=None, map_borders=None):
+    def move(self, keys, borders=None, map_coords=None):
         """Gère le déplacement et la direction avec les marges de caméra et les bordures de la carte."""
         dx, dy = 0, 0
         intended_dx, intended_dy = 0, 0
@@ -110,18 +108,19 @@ class Player:
             dx = dx * diagonal_factor
             dy = dy * diagonal_factor
 
-            # Vérifier les bordures de la carte
-        if map_borders:
-            if "right" in map_borders and dx > 0:
-                dx = 0
-            if "left" in map_borders and dx < 0:
-                dx = 0
-            if "down" in map_borders and dy > 0:
-                dy = 0
-            if "up" in map_borders and dy < 0:
-                dy = 0
+        # Vérifier les bordures de la carte
+        if map_coords:
+            map_left, map_top, map_right, map_bottom = map_coords
+            if self.rect.left + dx < map_left:
+                dx = map_left - self.rect.left
+            if self.rect.right + dx > map_right:
+                dx = map_right - self.rect.right
+            if self.rect.top + dy < map_top:
+                dy = map_top - self.rect.top
+            if self.rect.bottom + dy > map_bottom:
+                dy = map_bottom - self.rect.bottom
 
-            # Vérifier les bordures de la caméra
+        # Vérifier les bordures de la caméra
         if borders:
             if "right" in borders and dx > 0:
                 dx = 0
