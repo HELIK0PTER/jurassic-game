@@ -163,7 +163,7 @@ class Gameplay(State):
                 self.player.shoot(mouse_pos, self.shoot_sound)
 
             # Gérer le déplacement de la caméra
-            marge = 300
+            marge = 250
             borders = []
             map_borders = []
 
