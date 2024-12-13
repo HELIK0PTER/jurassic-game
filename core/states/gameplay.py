@@ -11,6 +11,18 @@ bonus_images = {
     'fire_rate': pygame.image.load("assets/images/player-bonus2/player_bonus2.png")
 }
 
+# Border images
+border_images = {
+    'up': pygame.image.load("assets/images/map/borders/border_up.png"),
+    'down': pygame.image.load("assets/images/map/borders/border_down.png"),
+    'left': pygame.image.load("assets/images/map/borders/border_left.png"),
+    'right': pygame.image.load("assets/images/map/borders/border_right.png"),
+    'upleft': pygame.image.load("assets/images/map/borders/border_upleft.png"),
+    'upright': pygame.image.load("assets/images/map/borders/border_upright.png"),
+    'downleft': pygame.image.load("assets/images/map/borders/border_downleft.png"),
+    'downright': pygame.image.load("assets/images/map/borders/border_downright.png")
+}
+
 window_width, window_height = 800, 600
 
 class Bonus:
@@ -368,13 +380,31 @@ class Gameplay(State):
 
         # Dessiner l'arrière-plan terre
         tile_width, tile_height = self.background_image.get_size()
-        for x in range(self.map_coords[0], self.map_coords[2], tile_width): # On dessine 4 fois l'arrière-plan
+        for x in range(self.map_coords[0], self.map_coords[2], tile_width):  # On dessine 4 fois l'arrière-plan
             for y in range(self.map_coords[1], self.map_coords[3], tile_height):
                 screen.blit(self.background_image, (x, y))
 
         # Dessiner les éléments fixes du décor
         for element in self.decor_elements:
             screen.blit(element["image"], element["position"])
+
+        # Dessiner les bords de la carte
+        border_width, border_height = border_images["up"].get_size()
+        for x in range(self.map_coords[0], self.map_coords[2], border_width):
+            screen.blit(border_images["up"], (x, self.map_coords[1] - border_height))
+            screen.blit(border_images["down"], (x, self.map_coords[3]))
+
+        for y in range(self.map_coords[1], self.map_coords[3], border_height):
+            screen.blit(border_images["left"], (self.map_coords[0] - border_width, y))
+            screen.blit(border_images["right"], (self.map_coords[2], y))
+
+        # Dessiner les coins de la carte
+        screen.blit(border_images["upleft"], (self.map_coords[0] - border_width, self.map_coords[1] - border_height))
+        screen.blit(border_images["upright"], (self.map_coords[2], self.map_coords[1] - border_height))
+        screen.blit(border_images["downleft"], (self.map_coords[0] - border_width, self.map_coords[3]))
+        screen.blit(border_images["downright"], (self.map_coords[2], self.map_coords[3]))
+
+
 
     def render(self, screen):
         mouse_pos = pygame.mouse.get_pos()
