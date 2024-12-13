@@ -86,8 +86,8 @@ class Player:
 
     import math
 
-    def move(self, keys, borders=None):
-        """Gère le déplacement et la direction avec une liste de bordures."""
+    def move(self, keys, borders=None, map_borders=None):
+        """Gère le déplacement et la direction avec les marges de caméra et les bordures de la carte."""
         dx, dy = 0, 0
         intended_dx, intended_dy = 0, 0
 
@@ -110,7 +110,18 @@ class Player:
             dx = dx * diagonal_factor
             dy = dy * diagonal_factor
 
-        # Vérifier les bordures de la liste
+            # Vérifier les bordures de la carte
+        if map_borders:
+            if "right" in map_borders and dx > 0:
+                dx = 0
+            if "left" in map_borders and dx < 0:
+                dx = 0
+            if "down" in map_borders and dy > 0:
+                dy = 0
+            if "up" in map_borders and dy < 0:
+                dy = 0
+
+            # Vérifier les bordures de la caméra
         if borders:
             if "right" in borders and dx > 0:
                 dx = 0

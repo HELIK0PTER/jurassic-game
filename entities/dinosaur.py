@@ -2,14 +2,17 @@ import pygame
 import random
 
 class Dinosaur:
-    def __init__(self, dino_type=None):
-        self.dino_type = dino_type or random.choice(["DinoNormal", "DinoRapide", "DinoLent"])
+    def __init__(self, map_cords = [0,0,0,0]):
+        self.map_cords = map_cords
+        print("spawn at ",map_cords)
+        self.dino_type = random.choice(["DinoNormal", "DinoRapide", "DinoLent"])
         self.configure_dinosaur()
 
         # Initialiser les variables nécessaires pour l'animation
         self.current_frame = 0
         self.image = self.animation_frames[int(self.current_frame)]
         self.rect = self.image.get_rect()
+
         self.random_spawn()
         self.direction = "right"
 
@@ -60,20 +63,35 @@ class Dinosaur:
             pygame.transform.scale(frame, self.size) for frame in self.animation_frames
         ]
 
-    def random_spawn(self):
-        side = random.choice(["left", "right", "top", "bottom"])
+    def random_spawn(self, side=None):
+        side = side or random.choice(["left", "right", "top", "bottom"])
+
+        map_left, map_top, map_right, map_bottom = self.map_cords
+        window_left, window_top, window_right, window_bottom = 0, 0, 800, 600  # Assuming window size
+
         if side == "left":
-            self.rect.x = -self.rect.width - 10
-            self.rect.y = random.randint(0, 600)
+            self.rect.x = window_left - self.rect.width - 10
+            self.rect.y = random.randint(window_top, window_bottom - self.rect.height)
         elif side == "right":
-            self.rect.x = 800 + 10
-            self.rect.y = random.randint(0, 600)
+            self.rect.x = window_right + 10
+            self.rect.y = random.randint(window_top, window_bottom - self.rect.height)
         elif side == "top":
-            self.rect.x = random.randint(0, 800)
-            self.rect.y = -self.rect.height - 10
+            self.rect.y = window_top - self.rect.height - 10
+            self.rect.x = random.randint(window_left, window_right - self.rect.width)
         elif side == "bottom":
-            self.rect.x = random.randint(0, 800)
-            self.rect.y = 600 + 10
+            self.rect.y = window_bottom + 10
+            self.rect.x = random.randint(window_left, window_right - self.rect.width)
+
+        if self.rect.x < map_left:
+            self.rect.x = map_right - self.rect.width
+        elif self.rect.x > map_right - self.rect.width:
+            self.rect.x = map_left
+
+        if self.rect.y < map_top:
+            self.rect.y = map_bottom - self.rect.height
+        elif self.rect.y > map_bottom - self.rect.height:
+            self.rect.y = map_top
+
 
     def move_towards_player(self, player_rect):
         if self.rect.x < player_rect.x:
