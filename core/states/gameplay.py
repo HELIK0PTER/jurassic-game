@@ -11,6 +11,8 @@ bonus_images = {
     'fire_rate': pygame.image.load("assets/images/player-bonus2/player_bonus2.png")
 }
 
+window_width, window_height = 800, 600
+
 class Bonus:
     def __init__(self, x, y, bonus_type):
         self.type = bonus_type  # Type de bonus : 'speed', 'fire_rate'
@@ -27,8 +29,8 @@ class Gameplay(State):
     def __init__(self, player_name=""):
         super().__init__()
         self.player = Player(375, 275)
-        self.enemies = []
-        self.bonuses = []  # Liste des bonus
+        self.enemies = [] # Liste des ennemis sur la carte
+        self.bonuses = []  # Liste des bonus sur la carte
         self.spawn_timer = 0
         self.spawn_delay = 120
         self.bonus_timer = 0
@@ -56,6 +58,7 @@ class Gameplay(State):
 
         # Charger l'image de fond
         self.background_image = pygame.image.load("assets/images/map/map_background.png")
+        self.map_coords = (-window_width*2, -window_height*2, window_width*2, window_height*2)
 
         # Charger les images des éléments fixes
         self.decor_images = [
@@ -71,17 +74,17 @@ class Gameplay(State):
         self.decor_elements = self.generate_random_decor(grid_size=50)
 
     def spawn_bonus(self):
-        if len(self.bonuses) < 3:
-            x = random.randint(50, 750)
-            y = random.randint(50, 550)
+        if len(self.bonuses) < 20: # max 50 bonus sur la carte
+            x = random.randint(-window_width*2 + 50, window_width*2 - 50)
+            y = random.randint(-window_height*2 + 50, window_height*2 - 50)
             choice_type = ['speed', 'fire_rate'][random.randint(0, 1)]
             self.bonuses.append(Bonus(x, y ,choice_type))
+            print(f"Bonus {choice_type} apparu en ({x}, {y})")
 
     def generate_random_decor(self, grid_size=50):
         decor = []
-        map_width, map_height = 800, 600
-        for x in range(0, map_width, grid_size):
-            for y in range(0, map_height, grid_size):
+        for x in range(-window_width*2, window_width*2, grid_size):
+            for y in range(-window_height*2, window_height*2, grid_size):
                 if random.random() < 0.03:
                     try:
                         trying = True
@@ -91,7 +94,7 @@ class Gameplay(State):
                                 if element["position"] == (x, y):
                                     x += grid_size
                                     y += grid_size
-                                    break
+
                             # Si l'obstacle veut apparaître sur le joueur, on le met pas
                             if self.player.rect.colliderect(pygame.Rect(x, y, grid_size, grid_size)):
                                 x = None
@@ -105,13 +108,103 @@ class Gameplay(State):
                         pass
         return decor
 
+    def move_decor(self, speed, direction):
+        for element in self.decor_elements:
+            if direction == "up":
+                element["position"] = (element["position"][0], element["position"][1] + speed)
+            elif direction == "down":
+                element["position"] = (element["position"][0], element["position"][1] - speed)
+            elif direction == "left":
+                element["position"] = (element["position"][0] + speed, element["position"][1])
+            elif direction == "right":
+                element["position"] = (element["position"][0] - speed, element["position"][1])
+
+    def move_enemies(self, speed, direction):
+        for enemy in self.enemies:
+            if direction == "up":
+                enemy.rect.y += speed
+            elif direction == "down":
+                enemy.rect.y -= speed
+            elif direction == "left":
+                enemy.rect.x += speed
+            elif direction == "right":
+                enemy.rect.x -= speed
+
+    def move_bonus(self, speed, direction):
+        for bonus in self.bonuses:
+            if direction == "up":
+                bonus.rect.y += speed
+            elif direction == "down":
+                bonus.rect.y -= speed
+            elif direction == "left":
+                bonus.rect.x += speed
+            elif direction == "right":
+                bonus.rect.x -= speed
+
+
     def handle_events(self, events):
         if not self.player.is_dead:
             keys = pygame.key.get_pressed()
-            self.player.move(keys)
             mouse_pos = pygame.mouse.get_pos()
             if keys[pygame.K_SPACE] or pygame.mouse.get_pressed()[0]:
                 self.player.shoot(mouse_pos, self.shoot_sound)
+
+            # Gérer le déplacement de la caméra
+            """
+            La caméra ne bouge pas dans que le joueur n'est pas à MARGE pixels de la bordure de l'écran.
+            Quand le joueur atteint cette distance, on déplace la caméra de la même manière que le joueur.
+            (Ex : si le joueur va à droite, la caméra reste fixe jusqu'à ce que le joueur atteigne MARGE pixels de la droite
+            de l'écran, puis la caméra se déplace à droite jusqu'à ce que le joueur veuille aller à gauche)
+            ATTENTION IL FAUT SMOOTHER LE DÉPLACEMENT DE LA CAMÉRA QUAND LE JOUEUR EST À LA BORDURE DE L'ÉCRAN :
+            - si le jouer est a droite, la caméra se déplace à droite et le joueur reste fixe mais doit pouvoir bouger verticalement tout de même
+            - si le joueur est a droite et se déplace verticalement, la caméra doit se déplacer verticalement aussi et l'animation du sprite du joueur doit être adaptée
+            
+            
+            fonction move du joueur : self.player.move(keys)
+            variables utiles : window_width, window_height, map_coords, grid_size, player.speed
+            """
+            # Gestion du déplacement avec la caméra
+            marge = 300
+            borders = []
+
+            # Vérification de toutes les bordures
+            if self.player.rect.right > window_width - marge and keys[pygame.K_d]:
+                borders.append("right")
+                self.move_decor(self.player.speed, "right")
+                self.move_enemies(self.player.speed, "right")
+                self.move_bonus(self.player.speed, "right")
+                self.map_coords = (self.map_coords[0] - self.player.speed, self.map_coords[1],
+                                   self.map_coords[2] - self.player.speed, self.map_coords[3])
+
+            if self.player.rect.left < marge and keys[pygame.K_q]:
+                borders.append("left")
+                self.move_decor(self.player.speed, "left")
+                self.move_enemies(self.player.speed, "left")
+                self.move_bonus(self.player.speed, "left")
+                self.map_coords = (self.map_coords[0] + self.player.speed, self.map_coords[1],
+                                   self.map_coords[2] + self.player.speed, self.map_coords[3])
+
+            if self.player.rect.bottom > window_height - marge / 1.5 and keys[pygame.K_s]:
+                borders.append("down")
+                self.move_decor(self.player.speed, "down")
+                self.move_enemies(self.player.speed, "down")
+                self.move_bonus(self.player.speed, "down")
+                self.map_coords = (self.map_coords[0], self.map_coords[1] - self.player.speed,
+                                   self.map_coords[2], self.map_coords[3] - self.player.speed)
+
+            if self.player.rect.top < marge / 1.5 and keys[pygame.K_z]:
+                borders.append("up")
+                self.move_decor(self.player.speed, "up")
+                self.move_enemies(self.player.speed, "up")
+                self.move_bonus(self.player.speed, "up")
+                self.map_coords = (self.map_coords[0], self.map_coords[1] + self.player.speed,
+                                   self.map_coords[2], self.map_coords[3] + self.player.speed)
+
+            # Déplacer le joueur avec la liste des bordures
+            self.player.move(keys, borders)
+            borders.clear()
+
+
 
         for event in events:
             if event.type == pygame.USEREVENT + 1:  # Réinitialiser bonus vitesse
@@ -129,7 +222,7 @@ class Gameplay(State):
 
             # Gérer l'apparition des bonus
             self.bonus_timer += 1
-            if self.bonus_timer > 60*5: # Toutes les 5 secondes
+            if self.bonus_timer > 60*1: # Toutes les x secondes (avec x multiplié par 60 pour les ticks)
                 self.spawn_bonus()
                 self.bonus_timer = 0
 
@@ -271,20 +364,25 @@ class Gameplay(State):
         draw_bar(fire_rate_bar_x, fire_rate_bar_y, self.player.bonus_timers['fire_rate'], fire_start_color,
                  fire_end_color, "Mini Gun")
 
-    def render(self, screen):
-        mouse_pos = pygame.mouse.get_pos()
-        screen.fill((0, 0, 0))
+    def render_map(self, screen):
+        # Dessiner l'arrière plan mer
+        screen.fill((0, 0, 255))
 
-        # Dessiner l'arrière-plan
-        screen_width, screen_height = screen.get_size()
+        # Dessiner l'arrière-plan terre
         tile_width, tile_height = self.background_image.get_size()
-        for x in range(0, screen_width, tile_width):
-            for y in range(0, screen_height, tile_height):
+        for x in range(self.map_coords[0], self.map_coords[2], tile_width): # On dessine 4 fois l'arrière-plan
+            for y in range(self.map_coords[1], self.map_coords[3], tile_height):
                 screen.blit(self.background_image, (x, y))
 
         # Dessiner les éléments fixes du décor
         for element in self.decor_elements:
             screen.blit(element["image"], element["position"])
+
+    def render(self, screen):
+        mouse_pos = pygame.mouse.get_pos()
+
+        # Dessiner la carte
+        self.render_map(screen)
 
         # Dessiner les ennemis, bonus et joueur
         for enemy in self.enemies:

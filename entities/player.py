@@ -84,38 +84,69 @@ class Player:
             for bonus, sprite_paths in player_sprite_paths.items()
         }
 
-    def move(self, keys):
-        """Gère le déplacement et la direction."""
+    import math
+
+    def move(self, keys, borders=None):
+        """Gère le déplacement et la direction avec une liste de bordures."""
         dx, dy = 0, 0
+        intended_dx, intended_dy = 0, 0
+
         if keys[pygame.K_z]:  # Haut
             dy -= self.speed
+            intended_dy -= 1
         if keys[pygame.K_s]:  # Bas
             dy += self.speed
+            intended_dy += 1
         if keys[pygame.K_q]:  # Gauche
             dx -= self.speed
+            intended_dx -= 1
         if keys[pygame.K_d]:  # Droite
             dx += self.speed
+            intended_dx += 1
 
+        # Ajuster la vitesse en diagonale
+        if dx != 0 and dy != 0:
+            diagonal_factor = math.cos(math.pi / 4)  # 1/√2
+            dx = dx * diagonal_factor
+            dy = dy * diagonal_factor
+
+        # Vérifier les bordures de la liste
+        if borders:
+            if "right" in borders and dx > 0:
+                dx = 0
+            if "left" in borders and dx < 0:
+                dx = 0
+            if "down" in borders and dy > 0:
+                dy = 0
+            if "up" in borders and dy < 0:
+                dy = 0
+
+        # Appliquer le mouvement
         self.rect.x += dx
         self.rect.y += dy
 
-        if dx > 0 and dy < 0:
-            self.direction = 'upright'
-        elif dx > 0 and dy > 0:
-            self.direction = 'downright'
-        elif dx < 0 and dy < 0:
-            self.direction = 'upleft'
-        elif dx < 0 and dy > 0:
-            self.direction = 'downleft'
-        elif dx > 0:
-            self.direction = 'right'
-        elif dx < 0:
-            self.direction = 'left'
-        elif dy > 0:
-            self.direction = 'down'
-        elif dy < 0:
-            self.direction = 'up'
+        # Direction pour l'animation (basée sur l'intention)
+        if intended_dx > 0 and intended_dy < 0:
+            self.change_direction('upright')
+        elif intended_dx > 0 and intended_dy > 0:
+            self.change_direction('downright')
+        elif intended_dx < 0 and intended_dy < 0:
+            self.change_direction('upleft')
+        elif intended_dx < 0 and intended_dy > 0:
+            self.change_direction('downleft')
+        elif intended_dx > 0:
+            self.change_direction('right')
+        elif intended_dx < 0:
+            self.change_direction('left')
+        elif intended_dy > 0:
+            self.change_direction('down')
+        elif intended_dy < 0:
+            self.change_direction('up')
 
+
+    def change_direction(self, direction):
+        """Change la direction du joueur."""
+        self.direction = direction
         self.current_sprite = self.sprites[self.active_bonus][self.direction]
 
     def shoot(self, mouse_pos, sound):
