@@ -51,14 +51,11 @@ class Player:
         self.bonus_timers = {
             'speed': 0,
             'fire_rate': 0
-        }  # Timers pour chaque bonus
+        }
 
-
-        # Chargement des sprites
         self.sprites = self.load_all_sprites()
         self.current_sprite = self.sprites['default']['down']
 
-        # Sprite de voiture cassée et animation d'explosion
         self.dead_sprite = pygame.image.load("assets/images/player/player_break.png").convert_alpha()
         self.dead_sprite = pygame.transform.scale(self.dead_sprite, (60, 60))
         self.explosion_sprites = [
@@ -70,12 +67,10 @@ class Player:
         self.explosion_frame = 0
         self.explosion_timer = 0
 
-        # Son d'explosion
         self.dead_sound = pygame.mixer.Sound("assets/sounds/ExploCar.mp3")
         self.dead_sound.set_volume(0.5)
 
     def load_all_sprites(self):
-        """Charge tous les sprites pour chaque bonus."""
         return {
             bonus: {
                 direction: pygame.image.load(path).convert_alpha()
@@ -84,31 +79,28 @@ class Player:
             for bonus, sprite_paths in player_sprite_paths.items()
         }
 
-    def move(self, keys, borders=None, map_coords=None):
-        """Gère le déplacement et la direction avec les marges de caméra et les bordures de la carte."""
+    def move(self, keys, borders=None, map_coords=None, obstacles=None):
         dx, dy = 0, 0
         intended_dx, intended_dy = 0, 0
 
-        if keys[pygame.K_z]:  # Haut
+        if keys[pygame.K_z]:
             dy -= self.speed
             intended_dy -= 1
-        if keys[pygame.K_s]:  # Bas
+        if keys[pygame.K_s]:
             dy += self.speed
             intended_dy += 1
-        if keys[pygame.K_q]:  # Gauche
+        if keys[pygame.K_q]:
             dx -= self.speed
             intended_dx -= 1
-        if keys[pygame.K_d]:  # Droite
+        if keys[pygame.K_d]:
             dx += self.speed
             intended_dx += 1
 
-        # Ajuster la vitesse en diagonale
         if dx != 0 and dy != 0:
-            diagonal_factor = math.cos(math.pi / 4)  # 1/√2
-            dx = dx * diagonal_factor
-            dy = dy * diagonal_factor
+            diagonal_factor = math.cos(math.pi / 4)
+            dx *= diagonal_factor
+            dy *= diagonal_factor
 
-        # Vérifier les bordures de la carte
         if map_coords:
             map_left, map_top, map_right, map_bottom = map_coords
             if self.rect.left + dx < map_left:
@@ -120,7 +112,6 @@ class Player:
             if self.rect.bottom + dy > map_bottom:
                 dy = map_bottom - self.rect.bottom
 
-        # Vérifier les bordures de la caméra
         if borders:
             if "right" in borders and dx > 0:
                 dx = 0
@@ -131,11 +122,23 @@ class Player:
             if "up" in borders and dy < 0:
                 dy = 0
 
-        # Appliquer le mouvement
+        # Test de collision avec obstacles
+        new_rect = self.rect.copy()
+        new_rect.x += dx
+        new_rect.y += dy
+
+        if obstacles:
+            for obs in obstacles:
+                if new_rect.colliderect(obs.rect):
+                    # Collision détectée, annule le déplacement
+                    dx = 0
+                    dy = 0
+                    break
+
         self.rect.x += dx
         self.rect.y += dy
 
-        # Direction pour l'animation (basée sur l'intention)
+        # Direction
         if intended_dx > 0 and intended_dy < 0:
             self.change_direction('upright')
         elif intended_dx > 0 and intended_dy > 0:
@@ -153,14 +156,11 @@ class Player:
         elif intended_dy < 0:
             self.change_direction('up')
 
-
     def change_direction(self, direction):
-        """Change la direction du joueur."""
         self.direction = direction
         self.current_sprite = self.sprites[self.active_bonus][self.direction]
 
     def shoot(self, mouse_pos, sound):
-        """Tire un projectile en direction de la souris."""
         if self.shoot_cooldown == 0:
             dx, dy = mouse_pos[0] - self.rect.centerx, mouse_pos[1] - self.rect.centery
             angle = math.atan2(dy, dx)
@@ -175,7 +175,6 @@ class Player:
             sound.play()
 
     def update_projectiles(self):
-        """Met à jour les projectiles et les animations de feu."""
         for projectile in self.projectiles[:]:
             projectile.move()
             projectile.life_duration -= 1
@@ -188,14 +187,12 @@ class Player:
         self.update_fires()
 
     def update_fires(self):
-        """Met à jour les animations de feu."""
         for fire in self.fires[:]:
             fire.update()
             if fire.animation_done:
                 self.fires.remove(fire)
 
     def draw(self, screen, mouse_pos):
-        """Dessine le joueur, les projectiles, et les animations."""
         if self.is_dead:
             if self.explosion_frame < len(self.explosion_sprites):
                 screen.blit(self.explosion_sprites[self.explosion_frame], (self.rect.x, self.rect.y))
@@ -213,7 +210,6 @@ class Player:
             fire.draw(screen)
 
     def die(self):
-        """Déclenche la mort du joueur."""
         if not self.is_dead:
             self.is_dead = True
             self.dead_sound.play()
@@ -221,34 +217,22 @@ class Player:
             self.explosion_timer = 0
 
     def apply_bonus(self, bonus_type):
-        """
-        Applique un bonus au joueur et met à jour ses caractéristiques.
-        """
-        self.active_bonus = bonus_type  # Change le bonus actif pour changer le sprite
+        self.active_bonus = bonus_type
         if bonus_type == 'speed':
             self.speed = 7
-            self.bonus_timers['speed'] = 60*5  # Durée de 5 secondes
+            self.bonus_timers['speed'] = 60*5
         elif bonus_type == 'fire_rate':
             self.default_cooldown = max(10, self.default_cooldown // 2)
-            self.bonus_timers['fire_rate'] = 60*5  # Durée de 5 secondes
-
-        # Mettre à jour le sprite actuel
-        self.active_bonus = bonus_type
+            self.bonus_timers['fire_rate'] = 60*5
         self.current_sprite = self.sprites[self.active_bonus][self.direction]
 
     def reset_speed_bonus(self):
-        """Réinitialise le bonus de vitesse."""
         self.speed = 5
 
     def reset_fire_rate_bonus(self):
-        """Réinitialise le bonus de cadence de tir."""
         self.default_cooldown = 30
 
     def update_bonus(self):
-        """
-        Vérifie si les bonus doivent être réinitialisés.
-        """
-        # Réduction des timers
         if self.bonus_timers['speed'] > 0:
             self.bonus_timers['speed'] -= 1
         else:
@@ -261,7 +245,6 @@ class Player:
             self.reset_fire_rate_bonus()
             self.bonus_timers['fire_rate'] = 0
 
-        # Détermine le sprite en fonction des bonus actifs
         if self.bonus_timers['speed'] > 0:
             self.active_bonus = 'speed'
         elif self.bonus_timers['fire_rate'] > 0:
@@ -269,5 +252,4 @@ class Player:
         else:
             self.active_bonus = 'default'
 
-        # Mettre à jour le sprite actuel
         self.current_sprite = self.sprites[self.active_bonus][self.direction]
